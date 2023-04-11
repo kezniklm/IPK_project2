@@ -6,7 +6,7 @@
  * Prelozene: GCC 11.3.0
  */
 
-#include <stdlib.h>     
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -14,7 +14,7 @@
 #define ERROR_H
 
 /**
- * @brief Vypíše text "CHYBA:..." 
+ * @brief Vypíše text "CHYBA:..."
  */
 void warning_msg(const char *fmt, ...);
 

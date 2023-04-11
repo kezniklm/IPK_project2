@@ -8,7 +8,7 @@
 #Popis: Makefile pre IPK-projekt č.2
 
 CC = gcc
-CFLAGS = -std=c18 -pedantic -Wall -Wextra  -g -fcommon 
+CFLAGS = -std=c18 -pedantic -Wall -Wextra -g -fcommon -D_DEFAULT_SOURCE -lpcap 
 
 .PHONY: error.o args.o ipk-sniffer.o ipk-sniffer zip clean
 

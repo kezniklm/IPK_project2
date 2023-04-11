@@ -106,7 +106,7 @@ void is_another_argument(char *argv[], int argument_number)
     if (argv[argument_number + NEXT_ARGUMENT] != NULL)
     {
         if (argv[argument_number + NEXT_ARGUMENT][0] == '-')
-        error_exit("Chybný argument programu");
+            error_exit("Chybný argument programu");
     }
     else
     {
