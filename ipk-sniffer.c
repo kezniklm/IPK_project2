@@ -7,8 +7,13 @@
 
 #include "ipk-sniffer.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     struct Arguments *arguments = calloc(1, sizeof(struct Arguments));
+    if (!arguments)
+    {
+        error_exit("Chyba pri alokácii pamäte");
+    }
+    arg_check(argc, argv, arguments);
     free_arguments(arguments);
 }

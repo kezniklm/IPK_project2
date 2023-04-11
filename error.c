@@ -2,7 +2,7 @@
  * @file error.c
  * @author Matej Keznikl (xkezni01@stud.fit.vutbr.cz)
  * @brief Implementácia funkcií warning_msg() a error_exit() z error.h
- * @date 2023-03-21
+ * @date 2023-04-17
  * Prelozene: GCC 11.3.0
  */
 
