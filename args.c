@@ -44,14 +44,16 @@ void arg_check(int argc, char *argv[], struct Arguments *args)
             check_port_format(argv[argument + 1]);
             args->is_port = true;
             argument++;
-        }
-        else if (!strcmp(argv[argument], "-t") || !strcmp(argv[argument], "--tcp"))
-        {
-            args->tcp = true;
-        }
-        else if (!strcmp(argv[argument], "-u") || !strcmp(argv[argument], "--udp"))
-        {
-            args->udp = true;
+            if (!strcmp(argv[argument + 1], "-t") || !strcmp(argv[argument + 1], "--tcp"))
+            {
+                args->tcp = true;
+                argument++;
+            }
+            else if (!strcmp(argv[argument + 1], "-u") || !strcmp(argv[argument + 1], "--udp"))
+            {
+                args->udp = true;
+                argument++;
+            }
         }
         else if (!strcmp(argv[argument], "--icmp4"))
         {
