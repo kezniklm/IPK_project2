@@ -65,19 +65,19 @@ void arg_check(int argc, char *argv[], struct Arguments *args)
         }
         else if (!strcmp(argv[argument], "--arp"))
         {
-            args->icmp6 = true;
+            args->arp = true;
         }
         else if (!strcmp(argv[argument], "--ndp"))
         {
-            args->icmp6 = true;
+            args->ndp = true;
         }
         else if (!strcmp(argv[argument], "--igmp"))
         {
-            args->icmp6 = true;
+            args->igmp = true;
         }
         else if (!strcmp(argv[argument], "--mld"))
         {
-            args->icmp6 = true;
+            args->mld = true;
         }
         else if (!strcmp(argv[argument], "-n"))
         {
