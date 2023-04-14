@@ -27,6 +27,7 @@
 
 #define MAC_LENGTH 17
 #define IP_LENGTH 15
+#define TIMESTAMP_LENGTH 30
 
 #define ICMP4 1
 #define IGMP 2
@@ -40,7 +41,7 @@ struct Output
     char *timestamp;
     char *src_mac;
     char *dst_mac;
-    char *frame_length;
+    int frame_length;
     char *src_IP;
     char *dst_IP;
     char *src_port;
@@ -68,6 +69,30 @@ void allocate_resources(struct Arguments **arguments, struct Output **out, char 
  * @param filter Filter vstupných protokolov
  */
 void free_resources(struct Arguments *arguments, struct Output *out, char *filter);
+
+/**
+ * @brief Vynuluje pamäť zadanú ako argument funkcie o zadanej veľkosti
+ *
+ * @param memory Pamäť na vynulovanie
+ * @param memory_size Veľkosť pamäti na vynulovanie
+ */
+void null_memory(char *memory, int memory_size);
+
+/**
+ * @brief Vynuluje výstupnú štruktúru
+ */
+void clear_output();
+
+/**
+ * @brief Vytvorí Timestamp podľa RFC 3339 formátu
+ * @param header Hlavička paketu nutná pre zistenie aktuálnej časovej zóny
+ */
+void create_timestamp(const struct pcap_pkthdr *header);
+
+/**
+ * @brief Vypíše výstupné údaje zo štruktúry Output na štandardný výstup
+ */
+void print_output();
 
 /**
  * @brief Podľa zadaných argumentov určí filter, ktorý používaju funkcie pcap_compile() a pcap_setfilter()
