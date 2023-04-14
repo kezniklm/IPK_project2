@@ -6,6 +6,7 @@
  */
 
 #include <stdio.h>
+#include <signal.h>
 #include <pcap.h>
 #include <arpa/inet.h>
 #include <netinet/if_ether.h>
@@ -24,7 +25,58 @@
 
 #define ERROR -1
 
+#define MAC_LENGTH 17
+#define IP_LENGTH 15
+
+#define ICMP4 1
+#define IGMP 2
+#define TCP 6
+#define UDP 17
+#define ICMP6_MLD 58
+#define NDP 77
+
+struct Output
+{
+    char *timestamp;
+    char *src_mac;
+    char *dst_mac;
+    char *frame_length;
+    char *src_IP;
+    char *dst_IP;
+    char *src_port;
+    char *dst_port;
+    char *byte_offset;
+};
+
 /**
  * @brief Vypíše všetky aktívne rozhrania na aktuálnom zariadení
  */
 void print_active_interfaces();
+
+/**
+ * @brief Naalokuje všetky potrebné dynamické premenné pre beh programu
+ * @param arguments Argumenty
+ * @param out Štruktúra výstupov
+ * @param filter Filter vstupných protokolov
+ */
+void allocate_resources(struct Arguments **arguments, struct Output **out, char **filter);
+
+/**
+ * @brief Uvoľní všetky alokované dynamické premenné pre beh programu
+ * @param arguments Argumenty
+ * @param out Štruktúra výstupov
+ * @param filter Filter vstupných protokolov
+ */
+void free_resources(struct Arguments *arguments, struct Output *out, char *filter);
+
+/**
+ * @brief Podľa zadaných argumentov určí filter, ktorý používaju funkcie pcap_compile() a pcap_setfilter()
+ * @param filter Filter
+ * @param args Vstupné argumenty
+ */
+void set_filter(char *filter, struct Arguments *args);
+
+/**
+ * @brief V prípade ukončenia programu pomocou signálu SIGINT korektne ukončí program
+ */
+void catch_sigint();
