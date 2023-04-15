@@ -52,9 +52,9 @@ struct Output
 };
 
 /**
- * @brief Vypíše všetky aktívne rozhrania na aktuálnom zariadení
+ * @brief V prípade ukončenia programu pomocou signálu SIGINT korektne ukončí program
  */
-void print_active_interfaces();
+void catch_sigint();
 
 /**
  * @brief Naalokuje všetky potrebné dynamické premenné pre beh programu
@@ -92,9 +92,78 @@ void clear_output();
 void create_timestamp(const struct pcap_pkthdr *header);
 
 /**
+ * @brief Podľa vstupného rámca určí výstupnú MAC adresu
+ * @param eth_hdr Ethernetová hlavička
+ */
+void get_mac_adress(ether_header *eth_hdr);
+
+/**
+ * @brief Vráti dĺžku rámca
+ * @param header
+ */
+void get_frame_length(const pcap_pkthdr *header);
+
+/**
+ * @brief Z IPV4 hlavičky pridá do výstupnej štruktúry IP adresy zdroja a cieľa
+ * @param iph IPv4 hlavička
+ */
+void get_ipv4_header(iphdr *iph);
+
+/**
+ * @brief Z IPv6 hlavičky pridá do výstupnej štruktúry IP adresy zdroja a cieľa
+ * @param iph IPv6 hlavička
+ */
+void get_ipv6_header(ip6_hdr *iph);
+
+/**
+ * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
+ * @param Buffer Dáta packetu
+ */
+void get_tcp_port_ipv4(const u_char *Buffer);
+
+/**
+ * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
+ * @param iph IPv6 Hlavička
+ */
+void get_tcp_port_ipv6(ip6_hdr *iph);
+
+/**
+ * @brief Z UDP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
+ * @param Buffer Dáta packetu
+ */
+void get_udp_port_ipv4(const u_char *Buffer);
+
+/**
+ * @brief Z UDP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
+ * @param iph IPv6 Hlavička
+ */
+void get_udp_port_ipv6(ip6_hdr *iph);
+
+/**
+ * @brief Z ARP rámca pridá do výstupnej štruktúry IP adresy zdroja a cieľa
+ * @param buffer Dáta packetu
+ */
+void get_arp_header(const u_char *buffer);
+
+/**
+ * @brief Vloži hexadecimálny formát packetu (hex dump) do výstupnej štruktúry
+ * @param data Dáta packetu
+ * @param size Veľkosť packetu
+ */
+void get_packet_data(const u_char *data, int size);
+
+/**
  * @brief Vypíše výstupné údaje zo štruktúry Output na štandardný výstup
  */
 void print_output(bool ports);
+
+/**
+ * @brief Vypíše konkrétne informácie o pakete podľa jeho typu
+ * @param args Argumenty
+ * @param header Hlavička paketu
+ * @param buffer Dáta paketu
+ */
+void packet_handler(u_char *args, const pcap_pkthdr *header, const u_char *buffer);
 
 /**
  * @brief Podľa zadaných argumentov určí filter, ktorý používaju funkcie pcap_compile() a pcap_setfilter()
@@ -104,6 +173,6 @@ void print_output(bool ports);
 void set_filter(char *filter, struct Arguments *args);
 
 /**
- * @brief V prípade ukončenia programu pomocou signálu SIGINT korektne ukončí program
+ * @brief Vypíše všetky aktívne rozhrania na aktuálnom zariadení
  */
-void catch_sigint();
+void print_active_interfaces();

@@ -154,6 +154,10 @@ void create_timestamp(const struct pcap_pkthdr *header)
     strcpy(out->timestamp, timestamp_str);
 }
 
+/**
+ * @brief Podľa vstupného rámca určí výstupnú MAC adresu
+ * @param eth_hdr Ethernetová hlavička
+ */
 void get_mac_adress(struct ether_header *eth_hdr)
 {
     char source_mac[18], dest_mac[18];
@@ -168,11 +172,19 @@ void get_mac_adress(struct ether_header *eth_hdr)
     strcpy(out->dst_mac, dest_mac);
 }
 
+/**
+ * @brief Vráti dĺžku rámca
+ * @param header
+ */
 void get_frame_length(const struct pcap_pkthdr *header)
 {
     out->frame_length = header->len;
 }
 
+/**
+ * @brief Z IPV4 hlavičky pridá do výstupnej štruktúry IP adresy zdroja a cieľa
+ * @param iph IPv4 hlavička
+ */
 void get_ipv4_header(struct iphdr *iph)
 {
     struct sockaddr_in source = {.sin_addr.s_addr = iph->saddr};
@@ -181,6 +193,10 @@ void get_ipv4_header(struct iphdr *iph)
     strcpy(out->dst_IP, inet_ntoa(dest.sin_addr));
 }
 
+/**
+ * @brief Z IPv6 hlavičky pridá do výstupnej štruktúry IP adresy zdroja a cieľa
+ * @param iph IPv6 hlavička
+ */
 void get_ipv6_header(struct ip6_hdr *iph)
 {
     if (!inet_ntop(AF_INET6, &(iph->ip6_src), out->src_IP, INET6_ADDRSTRLEN) || !inet_ntop(AF_INET6, &(iph->ip6_dst), out->dst_IP, INET6_ADDRSTRLEN))
@@ -189,6 +205,10 @@ void get_ipv6_header(struct ip6_hdr *iph)
     }
 }
 
+/**
+ * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
+ * @param Buffer Dáta packetu
+ */
 void get_tcp_port_ipv4(const u_char *Buffer)
 {
     struct iphdr *iph = (struct iphdr *)(Buffer + sizeof(struct ethhdr));
@@ -199,6 +219,10 @@ void get_tcp_port_ipv4(const u_char *Buffer)
     out->dst_port = ntohs(tcph->dest);
 }
 
+/**
+ * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
+ * @param iph IPv6 Hlavička
+ */
 void get_tcp_port_ipv6(struct ip6_hdr *iph)
 {
     struct tcphdr *tcph = (struct tcphdr *)((char *)iph + sizeof(struct ip6_hdr));
@@ -206,6 +230,10 @@ void get_tcp_port_ipv6(struct ip6_hdr *iph)
     out->dst_port = ntohs(tcph->th_dport);
 }
 
+/**
+ * @brief Z UDP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
+ * @param Buffer Dáta packetu
+ */
 void get_udp_port_ipv4(const u_char *Buffer)
 {
     struct iphdr *iph = (struct iphdr *)(Buffer + sizeof(struct ethhdr));
@@ -216,13 +244,21 @@ void get_udp_port_ipv4(const u_char *Buffer)
     out->dst_port = ntohs(udph->dest);
 }
 
+/**
+ * @brief Z UDP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
+ * @param iph IPv6 Hlavička
+ */
 void get_udp_port_ipv6(struct ip6_hdr *iph)
 {
-    struct udphdr *udph = (struct udphdr*) ((char*) iph + sizeof(struct ip6_hdr));
+    struct udphdr *udph = (struct udphdr *)((char *)iph + sizeof(struct ip6_hdr));
     out->src_port = ntohs(udph->source);
     out->dst_port = ntohs(udph->dest);
 }
 
+/**
+ * @brief Z ARP rámca pridá do výstupnej štruktúry IP adresy zdroja a cieľa
+ * @param buffer Dáta packetu
+ */
 void get_arp_header(const u_char *buffer)
 {
     struct ether_arp *arp_hdr = (struct ether_arp *)(buffer + sizeof(struct ether_header));
@@ -230,22 +266,28 @@ void get_arp_header(const u_char *buffer)
     strcpy(out->dst_IP, inet_ntoa(*(struct in_addr *)arp_hdr->arp_tpa));
 }
 
+/**
+ * @brief Vloži hexadecimálny formát packetu (hex dump) do výstupnej štruktúry
+ * @param data Dáta packetu
+ * @param size Veľkosť packetu
+ */
 void get_packet_data(const u_char *data, int size)
 {
     for (int i = 0; i < size; i++)
     {
-        if (i != 0 && i % 16 == 0) // if one line of hex printing is complete...
+        // Vloženie ASCII znakov packetu do výstupnej štruktúry - jedná sa o posledný stĺpec
+        if (i != 0 && i % 16 == 0)
         {
             strcat(out->data, "         ");
             for (int j = i - 16; j < i; j++)
             {
                 if (data[j] >= 32 && data[j] <= 128)
                 {
-                    sprintf(out->data + strlen(out->data), "%c", (unsigned char)data[j]); // if its a number or alphabet
+                    sprintf(out->data + strlen(out->data), "%c", (unsigned char)data[j]);
                 }
                 else
                 {
-                    strcat(out->data, "."); // otherwise print a dot
+                    strcat(out->data, ".");
                 }
             }
             strcat(out->data, "\n");
@@ -257,11 +299,11 @@ void get_packet_data(const u_char *data, int size)
         }
         sprintf(out->data + strlen(out->data), " %02X", (unsigned int)data[i]);
 
-        if (i == size - 1) // print the last spaces
+        if (i == size - 1)
         {
             for (int j = 0; j < 15 - i % 16; j++)
             {
-                strcat(out->data, "   "); // extra spaces
+                strcat(out->data, "   ");
             }
 
             strcat(out->data, "         ");
@@ -307,10 +349,10 @@ void print_output(bool ports)
 }
 
 /**
- * @brief
- * @param args
- * @param header
- * @param buffer
+ * @brief Vypíše konkrétne informácie o pakete podľa jeho typu
+ * @param args Argumenty
+ * @param header Hlavička paketu
+ * @param buffer Dáta paketu
  */
 void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *buffer)
 {
@@ -379,25 +421,26 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
 
         case ICMP6:
             ++icmp6;
-            struct icmp6_hdr *icmp_header = (struct icmp6_hdr*) ((char*) iph + sizeof(struct ip6_hdr));
-            
-            // Determine the type of ICMPv6 message
-            switch (icmp_header->icmp6_type) {
-                case MLD_LISTENER_QUERY:
-                case MLD_LISTENER_REPORT:
-                case MLD_LISTENER_REDUCTION:
-                case ND_ROUTER_SOLICIT:
-                case ND_ROUTER_ADVERT:
-                case ND_NEIGHBOR_SOLICIT:
-                case ND_NEIGHBOR_ADVERT:
-                case ND_REDIRECT:
-                case ICMP6_ECHO_REQUEST:
-                case ICMP6_ECHO_REPLY:
-                    get_packet_data(buffer, header->caplen);
-                    break;
-                default:
-                    printf("This is not an MLD, NDP, ICMPv6 request, or ICMPv6 response message.\n");
-                    break;
+            struct icmp6_hdr *icmp_header = (struct icmp6_hdr *)((char *)iph + sizeof(struct ip6_hdr));
+
+            // Podľa typu ICMP hlavičky určí o ktorý z protokolov sa jedná
+            switch (icmp_header->icmp6_type)
+            {
+            case MLD_LISTENER_QUERY:
+            case MLD_LISTENER_REPORT:
+            case MLD_LISTENER_REDUCTION:
+            case ND_ROUTER_SOLICIT:
+            case ND_ROUTER_ADVERT:
+            case ND_NEIGHBOR_SOLICIT:
+            case ND_NEIGHBOR_ADVERT:
+            case ND_REDIRECT:
+            case ICMP6_ECHO_REQUEST:
+            case ICMP6_ECHO_REPLY:
+                get_packet_data(buffer, header->caplen);
+                break;
+            default:
+                printf("This is not an MLD, NDP, ICMPv6 request, or ICMPv6 response message.\n");
+                break;
             }
             break;
 
@@ -432,14 +475,30 @@ void set_filter(char *filter, struct Arguments *args)
     {
         error_exit("Filter a argumenty nemozu byt NULL");
     }
-    if (args->tcp == true)
+    if (args->tcp && !args->is_port)
+    {
+        strcpy(filter, "tcp ");
+    }
+    if (args->udp && !args->is_port)
+    {
+        if (args->tcp)
+        {
+            strcat(filter, "or ");
+        }
+        strcpy(filter, "udp ");
+    }
+    if (args->tcp && args->is_port)
     {
         strcpy(filter, "tcp port ");
         strcat(filter, args->port);
         strcat(filter, " ");
     }
-    if (args->udp == true)
+    if (args->udp && args->is_port)
     {
+        if (args->tcp && args->is_port)
+        {
+            strcat(filter, "or ");
+        }
         strcpy(filter, "udp port ");
         strcat(filter, args->port);
         strcat(filter, " ");
