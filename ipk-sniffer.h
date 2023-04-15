@@ -15,6 +15,7 @@
 #include <netinet/tcp.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/udp.h>
+#include <netinet/icmp6.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -33,7 +34,7 @@
 #define IGMP 2
 #define TCP 6
 #define UDP 17
-#define ICMP6_MLD 58
+#define ICMP6 58
 #define NDP 77
 
 struct Output
@@ -44,9 +45,10 @@ struct Output
     int frame_length;
     char *src_IP;
     char *dst_IP;
-    char *src_port;
-    char *dst_port;
+    int src_port;
+    int dst_port;
     char *byte_offset;
+    char *data;
 };
 
 /**
@@ -92,7 +94,7 @@ void create_timestamp(const struct pcap_pkthdr *header);
 /**
  * @brief Vypíše výstupné údaje zo štruktúry Output na štandardný výstup
  */
-void print_output();
+void print_output(bool ports);
 
 /**
  * @brief Podľa zadaných argumentov určí filter, ktorý používaju funkcie pcap_compile() a pcap_setfilter()

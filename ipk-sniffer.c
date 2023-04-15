@@ -31,12 +31,12 @@ void allocate_resources(struct Arguments **arguments, struct Output **out, char 
     (*out)->timestamp = calloc(TIMESTAMP_LENGTH, sizeof(char));
     (*out)->src_mac = calloc(MAC_LENGTH + ENDING_ZERO, sizeof(char));
     (*out)->dst_mac = calloc(MAC_LENGTH + ENDING_ZERO, sizeof(char));
-    (*out)->src_IP = calloc(IP_LENGTH + ENDING_ZERO, sizeof(char));
-    (*out)->dst_IP = calloc(IP_LENGTH + ENDING_ZERO, sizeof(char));
-
+    (*out)->src_IP = calloc(INET6_ADDRSTRLEN + ENDING_ZERO, sizeof(char));
+    (*out)->dst_IP = calloc(INET6_ADDRSTRLEN + ENDING_ZERO, sizeof(char));
+    (*out)->data = calloc(10048, sizeof(char));
     *filter = calloc(512, sizeof(char));
 
-    if (!*arguments || !*filter || !*out || !(*out)->src_mac || !(*out)->dst_mac || !(*out)->src_IP || !(*out)->dst_IP)
+    if (!*arguments || !*filter || !*out || !(*out)->timestamp || !(*out)->src_mac || !(*out)->dst_mac || !(*out)->src_IP || !(*out)->dst_IP || !(*out)->data)
     {
         error_exit("Chyba pri alokácii pamäte");
     }
@@ -80,6 +80,12 @@ void free_resources(struct Arguments *arguments, struct Output *out, char *filte
         {
             free(out->dst_IP);
         }
+
+        if (out->data)
+        {
+            free(out->data);
+        }
+
         free(out);
     }
 
@@ -108,12 +114,13 @@ void clear_output()
     null_memory(out->timestamp, TIMESTAMP_LENGTH);
     null_memory(out->src_mac, MAC_LENGTH + ENDING_ZERO);
     null_memory(out->dst_mac, MAC_LENGTH + ENDING_ZERO);
-    // null_memory(out->frame_length,strlen(out->frame_length));
-    null_memory(out->src_IP, IP_LENGTH + ENDING_ZERO);
-    null_memory(out->dst_IP, IP_LENGTH + ENDING_ZERO);
-    // null_memory(out->src_port,strlen(out->src_port));
-    // null_memory(out->dst_port,strlen(out->dst_port));
+    out->frame_length = 0;
+    null_memory(out->src_IP, INET6_ADDRSTRLEN + ENDING_ZERO);
+    null_memory(out->dst_IP, INET6_ADDRSTRLEN + ENDING_ZERO);
+    out->src_port = 0;
+    out->dst_port = 0;
     // null_memory(out->byte_offset,strlen(out->byte_offset));
+    null_memory(out->data, 10048);
 }
 
 /**
@@ -132,7 +139,7 @@ void create_timestamp(const struct pcap_pkthdr *header)
     // Pripojí mikrosekundovú časť ku timestamp stringu
     if (snprintf(microsecond_str, sizeof(microsecond_str), ".%03ld", header->ts.tv_usec) < 0)
     {
-        error_exit("Chyba vramci funkcie snprintf"); //snprintf
+        error_exit("Chyba vramci funkcie snprintf"); // snprintf
     }
     strncat(timestamp_str, microsecond_str, sizeof(timestamp_str) - strlen(timestamp_str) - 1);
 
@@ -157,8 +164,8 @@ void get_mac_adress(struct ether_header *eth_hdr)
     // Konvertuje cielovu MAC adresu na string
     sprintf(dest_mac, "%02x:%02x:%02x:%02x:%02x:%02x", eth_hdr->ether_dhost[0], eth_hdr->ether_dhost[1], eth_hdr->ether_dhost[2], eth_hdr->ether_dhost[3], eth_hdr->ether_dhost[4], eth_hdr->ether_dhost[5]);
 
-    strcpy(out->src_mac,source_mac);
-    strcpy(out->dst_mac,dest_mac);
+    strcpy(out->src_mac, source_mac);
+    strcpy(out->dst_mac, dest_mac);
 }
 
 void get_frame_length(const struct pcap_pkthdr *header)
@@ -166,15 +173,136 @@ void get_frame_length(const struct pcap_pkthdr *header)
     out->frame_length = header->len;
 }
 
+void get_ipv4_header(struct iphdr *iph)
+{
+    struct sockaddr_in source = {.sin_addr.s_addr = iph->saddr};
+    struct sockaddr_in dest = {.sin_addr.s_addr = iph->daddr};
+    strcpy(out->src_IP, inet_ntoa(source.sin_addr));
+    strcpy(out->dst_IP, inet_ntoa(dest.sin_addr));
+}
+
+void get_ipv6_header(struct ip6_hdr *iph)
+{
+    if (!inet_ntop(AF_INET6, &(iph->ip6_src), out->src_IP, INET6_ADDRSTRLEN) || !inet_ntop(AF_INET6, &(iph->ip6_dst), out->dst_IP, INET6_ADDRSTRLEN))
+    {
+        error_exit("Chyba pri prevode IPV6 adresy");
+    }
+}
+
+void get_tcp_port_ipv4(const u_char *Buffer)
+{
+    struct iphdr *iph = (struct iphdr *)(Buffer + sizeof(struct ethhdr));
+    unsigned short iphdrlen = iph->ihl * 4;
+    struct tcphdr *tcph = (struct tcphdr *)(Buffer + iphdrlen + sizeof(struct ethhdr));
+
+    out->src_port = ntohs(tcph->source);
+    out->dst_port = ntohs(tcph->dest);
+}
+
+void get_tcp_port_ipv6(struct ip6_hdr *iph)
+{
+    struct tcphdr *tcph = (struct tcphdr *)((char *)iph + sizeof(struct ip6_hdr));
+    out->src_port = ntohs(tcph->th_sport);
+    out->dst_port = ntohs(tcph->th_dport);
+}
+
+void get_udp_port_ipv4(const u_char *Buffer)
+{
+    struct iphdr *iph = (struct iphdr *)(Buffer + sizeof(struct ethhdr));
+    unsigned short iphdrlen = iph->ihl * 4;
+    struct udphdr *udph = (struct udphdr *)(Buffer + iphdrlen + sizeof(struct ethhdr));
+
+    out->src_port = ntohs(udph->source);
+    out->dst_port = ntohs(udph->dest);
+}
+
+void get_udp_port_ipv6(struct ip6_hdr *iph)
+{
+    struct udphdr *udph = (struct udphdr*) ((char*) iph + sizeof(struct ip6_hdr));
+    out->src_port = ntohs(udph->source);
+    out->dst_port = ntohs(udph->dest);
+}
+
+void get_arp_header(const u_char *buffer)
+{
+    struct ether_arp *arp_hdr = (struct ether_arp *)(buffer + sizeof(struct ether_header));
+    strcpy(out->src_IP, inet_ntoa(*(struct in_addr *)arp_hdr->arp_spa));
+    strcpy(out->dst_IP, inet_ntoa(*(struct in_addr *)arp_hdr->arp_tpa));
+}
+
+void get_packet_data(const u_char *data, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (i != 0 && i % 16 == 0) // if one line of hex printing is complete...
+        {
+            strcat(out->data, "         ");
+            for (int j = i - 16; j < i; j++)
+            {
+                if (data[j] >= 32 && data[j] <= 128)
+                {
+                    sprintf(out->data + strlen(out->data), "%c", (unsigned char)data[j]); // if its a number or alphabet
+                }
+                else
+                {
+                    strcat(out->data, "."); // otherwise print a dot
+                }
+            }
+            strcat(out->data, "\n");
+        }
+
+        if (i % 16 == 0)
+        {
+            sprintf(out->data + strlen(out->data), "0x%04x: ", i);
+        }
+        sprintf(out->data + strlen(out->data), " %02X", (unsigned int)data[i]);
+
+        if (i == size - 1) // print the last spaces
+        {
+            for (int j = 0; j < 15 - i % 16; j++)
+            {
+                strcat(out->data, "   "); // extra spaces
+            }
+
+            strcat(out->data, "         ");
+
+            for (int j = i - i % 16; j <= i; j++)
+            {
+                if (data[j] >= 32 && data[j] <= 128)
+                {
+                    sprintf(out->data + strlen(out->data), "%c", (unsigned char)data[j]);
+                }
+                else
+                {
+                    strcat(out->data, ".");
+                }
+            }
+
+            strcat(out->data, "\n");
+        }
+    }
+    strcat(out->data, "\n");
+}
+
 /**
  * @brief Vypíše výstupné údaje zo štruktúry Output na štandardný výstup
  */
-void print_output()
+void print_output(bool ports)
 {
     printf("timestamp: %s\n", out->timestamp);
-    printf("src MAC: %s\n",out->src_mac);
-    printf("dst MAC: %s\n",out->dst_mac);
-    printf("frame length: %d bytes\n",out->frame_length);
+    printf("src MAC: %s\n", out->src_mac);
+    printf("dst MAC: %s\n", out->dst_mac);
+    printf("frame length: %d bytes\n", out->frame_length);
+    // PROTOKOL
+    printf("src IP: %s\n", out->src_IP);
+    printf("dst IP: %s\n", out->dst_IP);
+    if (ports)
+    {
+        // PROTOKOL
+        printf("src port: %d\n", out->src_port);
+        printf("dst port: %d\n", out->dst_port);
+    }
+    printf("%s", out->data);
     fflush(stdout);
 }
 
@@ -186,40 +314,44 @@ void print_output()
  */
 void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *buffer)
 {
-    static int tcp = 0, udp = 0, icmp = 0, others = 0, igmp = 0, total = 0, arp = 0, ndp = 0, icmp6 = 0;
+    static int tcp = 0, udp = 0, icmp = 0, others = 0, igmp = 0, total = 0, arp = 0, icmp6 = 0;
     struct ether_header *eth_hdr = (struct ether_header *)buffer;
+    bool is_port = false;
     clear_output();
     create_timestamp(header);
     get_mac_adress(eth_hdr);
     get_frame_length(header);
-    print_output();
     ++total;
     if (ntohs(eth_hdr->ether_type) == ETHERTYPE_IP)
     {
         struct iphdr *iph = (struct iphdr *)(buffer + sizeof(struct ethhdr));
+        get_ipv4_header(iph);
+
         switch (iph->protocol)
         {
         case ICMP4:
-            // print_icmp4();
+            get_packet_data(buffer, header->caplen);
             ++icmp;
             break;
 
         case IGMP:
-            // print_igmp();
+            get_packet_data(buffer, header->caplen);
             ++igmp;
             break;
 
         case TCP:
-            // print_tcp();
+            get_tcp_port_ipv4(buffer);
+            is_port = true;
+            get_packet_data(buffer, header->caplen);
             ++tcp;
             break;
 
         case UDP:
+            get_udp_port_ipv4(buffer);
+            is_port = true;
             ++udp;
-            // print_udp();
             break;
         default:
-            printf("\n%d\n", iph->protocol);
             ++others;
             break;
         }
@@ -228,26 +360,48 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     {
         struct ip6_hdr *iph = (struct ip6_hdr *)(buffer + sizeof(struct ether_header));
         int protocol = iph->ip6_nxt;
-        unsigned char icmpv6_type = *(buffer + sizeof(struct ip6_hdr));
+        get_ipv6_header(iph);
         switch (protocol)
         {
         case TCP:
-            // print_tcp();
+            get_tcp_port_ipv6(iph);
+            get_packet_data(buffer, header->caplen);
+            is_port = true;
             ++tcp;
             break;
 
         case UDP:
+            get_udp_port_ipv6(iph);
+            get_packet_data(buffer, header->caplen);
+            is_port = true;
             ++udp;
-            // print_udp();
             break;
 
-        case ICMP6_MLD:
+        case ICMP6:
             ++icmp6;
-            // print_icmp6_or_mld();
+            struct icmp6_hdr *icmp_header = (struct icmp6_hdr*) ((char*) iph + sizeof(struct ip6_hdr));
+            
+            // Determine the type of ICMPv6 message
+            switch (icmp_header->icmp6_type) {
+                case MLD_LISTENER_QUERY:
+                case MLD_LISTENER_REPORT:
+                case MLD_LISTENER_REDUCTION:
+                case ND_ROUTER_SOLICIT:
+                case ND_ROUTER_ADVERT:
+                case ND_NEIGHBOR_SOLICIT:
+                case ND_NEIGHBOR_ADVERT:
+                case ND_REDIRECT:
+                case ICMP6_ECHO_REQUEST:
+                case ICMP6_ECHO_REPLY:
+                    get_packet_data(buffer, header->caplen);
+                    break;
+                default:
+                    printf("This is not an MLD, NDP, ICMPv6 request, or ICMPv6 response message.\n");
+                    break;
+            }
             break;
 
         default:
-            printf("\n%d\n", protocol);
             ++others;
             break;
         }
@@ -255,13 +409,15 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     else if (ntohs(eth_hdr->ether_type) == ETHERTYPE_ARP)
     {
         ++arp;
-        // print_arp();
+        get_arp_header(buffer);
+        get_packet_data(buffer, header->caplen);
     }
     else
     {
         printf("Unknown packet type\n");
     }
-    printf("TCP : %d   UDP : %d   ICMP4 : %d  ARP: %d NDP:%d IGMP : %d MLD: %d   Others : %d   Total : %d\n", tcp, udp, icmp, arp, ndp, igmp, icmp6, others, total);
+    print_output(is_port);
+    // printf("TCP : %d   UDP : %d   ICMP4 : %d  ARP: %d NDP:%d IGMP : %d MLD: %d   Others : %d   Total : %d\n", tcp, udp, icmp, arp, ndp, igmp, icmp6, others, total);
     fflush(stdout);
 }
 
@@ -379,6 +535,7 @@ int main(int argc, char *argv[])
     arg_check(argc, argv, arguments);
     if (arguments->is_interface == false)
     {
+        free_resources(arguments, out, filter);
         print_active_interfaces(errbuff);
     }
 
@@ -405,6 +562,10 @@ int main(int argc, char *argv[])
         error_exit("Nebolo možné otvoriť zadaný interface");
     }
 
+    if (pcap_datalink(opened_session) != DLT_EN10MB)
+    {
+        error_exit("Interface neposkytuje ethernetove hlavicky");
+    }
     set_filter(filter, arguments);
     // printf("%s", filter);
     // fflush(stdout);
