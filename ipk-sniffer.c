@@ -31,12 +31,14 @@ void allocate_resources(struct Arguments **arguments, struct Output **out, char 
     (*out)->timestamp = calloc(TIMESTAMP_LENGTH, sizeof(char));
     (*out)->src_mac = calloc(MAC_LENGTH + ENDING_ZERO, sizeof(char));
     (*out)->dst_mac = calloc(MAC_LENGTH + ENDING_ZERO, sizeof(char));
+    (*out)->IP = calloc(MAX_PROTOCOL_NAME + ENDING_ZERO, sizeof(char));
     (*out)->src_IP = calloc(INET6_ADDRSTRLEN + ENDING_ZERO, sizeof(char));
     (*out)->dst_IP = calloc(INET6_ADDRSTRLEN + ENDING_ZERO, sizeof(char));
-    (*out)->data = calloc(10048, sizeof(char));
-    *filter = calloc(512, sizeof(char));
+    (*out)->protocol = calloc(MAX_PROTOCOL_NAME + ENDING_ZERO, sizeof(char));
+    (*out)->data = calloc(MAX_SIZE, sizeof(char));
+    *filter = calloc(MAX_FILTER_SIZE, sizeof(char));
 
-    if (!*arguments || !*filter || !*out || !(*out)->timestamp || !(*out)->src_mac || !(*out)->dst_mac || !(*out)->src_IP || !(*out)->dst_IP || !(*out)->data)
+    if (!*arguments || !*filter || !*out || !(*out)->timestamp || !(*out)->src_mac || !(*out)->dst_mac || !(*out)->src_IP || !(*out)->dst_IP || !(*out)->data || !(*out)->IP ||!(*out)->protocol)
     {
         error_exit("Chyba pri alokácii pamäte");
     }
@@ -69,6 +71,16 @@ void free_resources(struct Arguments *arguments, struct Output *out, char *filte
         if (out->dst_mac)
         {
             free(out->dst_mac);
+        }
+
+        if (out->IP)
+        {
+            free(out->IP);
+        }
+
+        if (out->protocol)
+        {
+            free(out->protocol);
         }
 
         if (out->src_IP)
@@ -115,12 +127,14 @@ void clear_output()
     null_memory(out->src_mac, MAC_LENGTH + ENDING_ZERO);
     null_memory(out->dst_mac, MAC_LENGTH + ENDING_ZERO);
     out->frame_length = 0;
+    null_memory(out->IP, MAX_PROTOCOL_NAME + ENDING_ZERO);
     null_memory(out->src_IP, INET6_ADDRSTRLEN + ENDING_ZERO);
     null_memory(out->dst_IP, INET6_ADDRSTRLEN + ENDING_ZERO);
+    null_memory(out->protocol, MAX_PROTOCOL_NAME + ENDING_ZERO);
     out->src_port = 0;
     out->dst_port = 0;
     // null_memory(out->byte_offset,strlen(out->byte_offset));
-    null_memory(out->data, 10048);
+    null_memory(out->data, MAX_SIZE);
 }
 
 /**
@@ -181,6 +195,11 @@ void get_frame_length(const struct pcap_pkthdr *header)
     out->frame_length = header->len;
 }
 
+void get_IP_name(char *name)
+{
+    strcpy(out->IP,name);
+}
+
 /**
  * @brief Z IPV4 hlavičky pridá do výstupnej štruktúry IP adresy zdroja a cieľa
  * @param iph IPv4 hlavička
@@ -205,6 +224,10 @@ void get_ipv6_header(struct ip6_hdr *iph)
     }
 }
 
+void get_protocol_name(char *name)
+{
+    strcpy(out->protocol, name);
+}
 /**
  * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
  * @param Buffer Dáta packetu
@@ -275,6 +298,10 @@ void get_packet_data(const u_char *data, int size)
 {
     for (int i = 0; i < size; i++)
     {
+        if (strlen(out->data) > MAX_SIZE - OFFSET )
+        {
+            error_exit("Packet je prilis velky");
+        }
         // Vloženie ASCII znakov packetu do výstupnej štruktúry - jedná sa o posledný stĺpec
         if (i != 0 && i % 16 == 0)
         {
@@ -335,16 +362,16 @@ void print_output(bool ports)
     printf("src MAC: %s\n", out->src_mac);
     printf("dst MAC: %s\n", out->dst_mac);
     printf("frame length: %d bytes\n", out->frame_length);
-    // PROTOKOL
+    printf("%s\n",out->IP);
     printf("src IP: %s\n", out->src_IP);
     printf("dst IP: %s\n", out->dst_IP);
+    printf("%s\n",out->protocol);
     if (ports)
     {
-        // PROTOKOL
         printf("src port: %d\n", out->src_port);
         printf("dst port: %d\n", out->dst_port);
     }
-    printf("%s", out->data);
+    printf("\n%s", out->data);
     fflush(stdout);
 }
 
@@ -368,20 +395,24 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     {
         struct iphdr *iph = (struct iphdr *)(buffer + sizeof(struct ethhdr));
         get_ipv4_header(iph);
+        get_IP_name("IPv4");
 
         switch (iph->protocol)
         {
         case ICMP4:
+            get_protocol_name("Internet Control Message Protocol version 4");
             get_packet_data(buffer, header->caplen);
             ++icmp;
             break;
 
         case IGMP:
+            get_protocol_name("Internet Group Management Protocol");
             get_packet_data(buffer, header->caplen);
             ++igmp;
             break;
 
         case TCP:
+            get_protocol_name("Transmission Control Protocol");
             get_tcp_port_ipv4(buffer);
             is_port = true;
             get_packet_data(buffer, header->caplen);
@@ -389,6 +420,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
             break;
 
         case UDP:
+            get_protocol_name("User Datagram Protocol");
             get_udp_port_ipv4(buffer);
             is_port = true;
             get_packet_data(buffer, header->caplen);
@@ -404,9 +436,11 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
         struct ip6_hdr *iph = (struct ip6_hdr *)(buffer + sizeof(struct ether_header));
         int protocol = iph->ip6_nxt;
         get_ipv6_header(iph);
+        get_IP_name("IPv6");
         switch (protocol)
         {
         case TCP:
+            get_protocol_name("Transmission Control Protocol");
             get_tcp_port_ipv6(iph);
             get_packet_data(buffer, header->caplen);
             is_port = true;
@@ -414,6 +448,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
             break;
 
         case UDP:
+            get_protocol_name("User Datagram Protocol");
             get_udp_port_ipv6(iph);
             get_packet_data(buffer, header->caplen);
             is_port = true;
@@ -430,13 +465,18 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
             case MLD_LISTENER_QUERY:
             case MLD_LISTENER_REPORT:
             case MLD_LISTENER_REDUCTION:
+                get_protocol_name("Multicast Listener Discovery");
+                break;
             case ND_ROUTER_SOLICIT:
             case ND_ROUTER_ADVERT:
             case ND_NEIGHBOR_SOLICIT:
             case ND_NEIGHBOR_ADVERT:
             case ND_REDIRECT:
+                get_protocol_name("Neighbor Discovery Protocol");
+                break;
             case ICMP6_ECHO_REQUEST:
             case ICMP6_ECHO_REPLY:
+                get_protocol_name("Internet Control Message Protocol version 6");
                 get_packet_data(buffer, header->caplen);
                 break;
             default:
@@ -454,6 +494,8 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     {
         ++arp;
         get_arp_header(buffer);
+        get_IP_name("IPv4");
+        get_protocol_name("Address Resolution Protocol");
         get_packet_data(buffer, header->caplen);
     }
     else

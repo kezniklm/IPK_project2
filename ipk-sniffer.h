@@ -29,6 +29,10 @@
 #define MAC_LENGTH 17
 #define IP_LENGTH 15
 #define TIMESTAMP_LENGTH 30
+#define MAX_SIZE 100000
+#define OFFSET 1000
+#define MAX_FILTER_SIZE 512
+#define MAX_PROTOCOL_NAME 128
 
 #define ICMP4 1
 #define IGMP 2
@@ -43,8 +47,10 @@ struct Output
     char *src_mac;
     char *dst_mac;
     int frame_length;
+    char *IP;
     char *src_IP;
     char *dst_IP;
+    char *protocol;
     int src_port;
     int dst_port;
     char *byte_offset;
