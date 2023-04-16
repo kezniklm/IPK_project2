@@ -391,6 +391,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
         case UDP:
             get_udp_port_ipv4(buffer);
             is_port = true;
+            get_packet_data(buffer, header->caplen);
             ++udp;
             break;
         default:
