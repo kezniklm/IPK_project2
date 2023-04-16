@@ -390,7 +390,10 @@ void print_output(bool ports)
     printf("%s\n", out->IP);
     printf("src IP: %s\n", out->src_IP);
     printf("dst IP: %s\n", out->dst_IP);
-    printf("%s\n", out->protocol);
+    if (strlen(out->protocol) != 0)
+    {
+        printf("%s\n", out->protocol);
+    }
     if (strlen(out->message_type) != 0)
     {
         printf("%s\n", out->message_type);
@@ -478,7 +481,6 @@ bool handle_IPv6(const u_char *buffer, const struct pcap_pkthdr *header)
     case ICMP6:;
         struct icmp6_hdr *icmp_header = (struct icmp6_hdr *)((char *)iph + sizeof(struct ip6_hdr));
         get_packet_data(buffer, header->caplen);
-
         // Podľa typu ICMP hlavičky určí o ktorý z protokolov sa jedná
         switch (icmp_header->icmp6_type)
         {
@@ -523,11 +525,11 @@ bool handle_IPv6(const u_char *buffer, const struct pcap_pkthdr *header)
             get_message_type("ICMPv6 Echo Reply");
             break;
         default:
-            printf("This is not an MLD, NDP, ICMPv6 request, or ICMPv6 response message.\n");
             break;
         }
         break;
-
+    case IPPROTO_HOPOPTS:;
+        get_packet_data(buffer, header->caplen);
     default:
         break;
     }
@@ -562,7 +564,6 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     create_timestamp(header);
     get_mac_adress(eth_hdr);
     get_frame_length(header);
-
     if (ntohs(eth_hdr->ether_type) == ETHERTYPE_IP)
     {
         is_port = handle_IPv4(buffer, header);
@@ -660,7 +661,7 @@ void set_filter(char *filter, struct Arguments *args)
         {
             strcat(filter, "or ");
         }
-        strcat(filter, "(icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) ");
+        strcat(filter, "(ip6 multicast or icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) ");
     }
     if (args->ndp == true)
     {
@@ -673,7 +674,7 @@ void set_filter(char *filter, struct Arguments *args)
 
     if (!args->tcp && !args->udp && !args->arp && !args->icmp4 && !args->icmp6 && !args->igmp && !args->mld && !args->ndp)
     {
-        strcat(filter, "tcp or udp or arp or ip proto 1 or icmp6 or igmp or (icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) or ((icmp6[icmp6type] >= 133 and icmp6[icmp6type] <= 137) or (icmp6[icmp6type] == 139))");
+        strcat(filter, "tcp or udp or arp or ip proto 1 or icmp6 or igmp or (ip6 multicast or icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) or ((icmp6[icmp6type] >= 133 and icmp6[icmp6type] <= 137) or (icmp6[icmp6type] == 139))");
     }
 }
 
