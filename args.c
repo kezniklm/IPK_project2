@@ -55,23 +55,21 @@ void arg_check(int argc, char *argv[], struct Arguments *args)
                 argument++;
             }
         }
-        else if (!strcmp(argv[argument + 1], "-t") || !strcmp(argv[argument + 1], "--tcp"))
+        else if (!strcmp(argv[argument], "-t") || !strcmp(argv[argument], "--tcp"))
         {
             if (args->tcp)
             {
                 error_exit("Chybný argument programu. Vyskúšajte ./ipk-sniffer --help\n");
             }
             args->tcp = true;
-            argument++;
         }
-        else if (!strcmp(argv[argument + 1], "-u") || !strcmp(argv[argument + 1], "--udp"))
+        else if (!strcmp(argv[argument], "-u") || !strcmp(argv[argument], "--udp"))
         {
             if (args->udp)
             {
                 error_exit("Chybný argument programu. Vyskúšajte ./ipk-sniffer --help\n");
             }
             args->udp = true;
-            argument++;
         }
         else if (!strcmp(argv[argument], "--icmp4"))
         {
