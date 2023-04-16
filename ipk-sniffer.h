@@ -95,25 +95,25 @@ void create_timestamp(const struct pcap_pkthdr *header);
  * @brief Podľa vstupného rámca určí výstupnú MAC adresu
  * @param eth_hdr Ethernetová hlavička
  */
-void get_mac_adress(ether_header *eth_hdr);
+void get_mac_adress(struct ether_header *eth_hdr);
 
 /**
  * @brief Vráti dĺžku rámca
  * @param header
  */
-void get_frame_length(const pcap_pkthdr *header);
+void get_frame_length(const struct pcap_pkthdr *header);
 
 /**
  * @brief Z IPV4 hlavičky pridá do výstupnej štruktúry IP adresy zdroja a cieľa
  * @param iph IPv4 hlavička
  */
-void get_ipv4_header(iphdr *iph);
+void get_ipv4_header(struct iphdr *iph);
 
 /**
  * @brief Z IPv6 hlavičky pridá do výstupnej štruktúry IP adresy zdroja a cieľa
  * @param iph IPv6 hlavička
  */
-void get_ipv6_header(ip6_hdr *iph);
+void get_ipv6_header(struct ip6_hdr *iph);
 
 /**
  * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
@@ -125,7 +125,7 @@ void get_tcp_port_ipv4(const u_char *Buffer);
  * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
  * @param iph IPv6 Hlavička
  */
-void get_tcp_port_ipv6(ip6_hdr *iph);
+void get_tcp_port_ipv6(struct ip6_hdr *iph);
 
 /**
  * @brief Z UDP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
@@ -137,7 +137,7 @@ void get_udp_port_ipv4(const u_char *Buffer);
  * @brief Z UDP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
  * @param iph IPv6 Hlavička
  */
-void get_udp_port_ipv6(ip6_hdr *iph);
+void get_udp_port_ipv6(struct ip6_hdr *iph);
 
 /**
  * @brief Z ARP rámca pridá do výstupnej štruktúry IP adresy zdroja a cieľa
@@ -163,7 +163,7 @@ void print_output(bool ports);
  * @param header Hlavička paketu
  * @param buffer Dáta paketu
  */
-void packet_handler(u_char *args, const pcap_pkthdr *header, const u_char *buffer);
+void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *buffer);
 
 /**
  * @brief Podľa zadaných argumentov určí filter, ktorý používaju funkcie pcap_compile() a pcap_setfilter()
