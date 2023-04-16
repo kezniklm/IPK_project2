@@ -7,6 +7,7 @@
 
 #include "ipk-sniffer.h"
 
+/* Ukazateľ na výstupnú štruktúru je globálny z dôvodu*/
 struct Output *out;
 
 /**
@@ -35,10 +36,11 @@ void allocate_resources(struct Arguments **arguments, struct Output **out, char 
     (*out)->src_IP = calloc(INET6_ADDRSTRLEN + ENDING_ZERO, sizeof(char));
     (*out)->dst_IP = calloc(INET6_ADDRSTRLEN + ENDING_ZERO, sizeof(char));
     (*out)->protocol = calloc(MAX_PROTOCOL_NAME + ENDING_ZERO, sizeof(char));
+    (*out)->message_type = calloc(MAX_PROTOCOL_NAME + ENDING_ZERO, sizeof(char));
     (*out)->data = calloc(MAX_SIZE, sizeof(char));
     *filter = calloc(MAX_FILTER_SIZE, sizeof(char));
 
-    if (!*arguments || !*filter || !*out || !(*out)->timestamp || !(*out)->src_mac || !(*out)->dst_mac || !(*out)->src_IP || !(*out)->dst_IP || !(*out)->data || !(*out)->IP ||!(*out)->protocol)
+    if (!*arguments || !*filter || !*out || !(*out)->timestamp || !(*out)->src_mac || !(*out)->dst_mac || !(*out)->src_IP || !(*out)->dst_IP || !(*out)->data || !(*out)->IP || !(*out)->protocol || !(*out)->message_type)
     {
         error_exit("Chyba pri alokácii pamäte");
     }
@@ -81,6 +83,11 @@ void free_resources(struct Arguments *arguments, struct Output *out, char *filte
         if (out->protocol)
         {
             free(out->protocol);
+        }
+
+        if (out->message_type)
+        {
+            free(out->message_type);
         }
 
         if (out->src_IP)
@@ -131,9 +138,9 @@ void clear_output()
     null_memory(out->src_IP, INET6_ADDRSTRLEN + ENDING_ZERO);
     null_memory(out->dst_IP, INET6_ADDRSTRLEN + ENDING_ZERO);
     null_memory(out->protocol, MAX_PROTOCOL_NAME + ENDING_ZERO);
+    null_memory(out->message_type, MAX_PROTOCOL_NAME + ENDING_ZERO);
     out->src_port = 0;
     out->dst_port = 0;
-    // null_memory(out->byte_offset,strlen(out->byte_offset));
     null_memory(out->data, MAX_SIZE);
 }
 
@@ -195,9 +202,13 @@ void get_frame_length(const struct pcap_pkthdr *header)
     out->frame_length = header->len;
 }
 
+/**
+ * @brief Nastaví typ IP adresy podľa parametru name
+ * @param name
+ */
 void get_IP_name(char *name)
 {
-    strcpy(out->IP,name);
+    strcpy(out->IP, name);
 }
 
 /**
@@ -224,10 +235,15 @@ void get_ipv6_header(struct ip6_hdr *iph)
     }
 }
 
+/**
+ * @brief Nastaví typ protokolu podľa parametru name
+ * @param name
+ */
 void get_protocol_name(char *name)
 {
     strcpy(out->protocol, name);
 }
+
 /**
  * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
  * @param Buffer Dáta packetu
@@ -279,6 +295,15 @@ void get_udp_port_ipv6(struct ip6_hdr *iph)
 }
 
 /**
+ * @brief Nastaví typ správy podľa parametru name
+ * @param name
+ */
+void get_message_type(char *name)
+{
+    strcpy(out->message_type, name);
+}
+
+/**
  * @brief Z ARP rámca pridá do výstupnej štruktúry IP adresy zdroja a cieľa
  * @param buffer Dáta packetu
  */
@@ -298,7 +323,7 @@ void get_packet_data(const u_char *data, int size)
 {
     for (int i = 0; i < size; i++)
     {
-        if (strlen(out->data) > MAX_SIZE - OFFSET )
+        if (strlen(out->data) > MAX_SIZE - OFFSET)
         {
             error_exit("Packet je prilis velky");
         }
@@ -362,10 +387,14 @@ void print_output(bool ports)
     printf("src MAC: %s\n", out->src_mac);
     printf("dst MAC: %s\n", out->dst_mac);
     printf("frame length: %d bytes\n", out->frame_length);
-    printf("%s\n",out->IP);
+    printf("%s\n", out->IP);
     printf("src IP: %s\n", out->src_IP);
     printf("dst IP: %s\n", out->dst_IP);
-    printf("%s\n",out->protocol);
+    printf("%s\n", out->protocol);
+    if (strlen(out->message_type) != 0)
+    {
+        printf("%s\n", out->message_type);
+    }
     if (ports)
     {
         printf("src port: %d\n", out->src_port);
@@ -376,6 +405,149 @@ void print_output(bool ports)
 }
 
 /**
+ * @brief Vloží do výstupnej štruktúry všetky potrebné informácie o pakete obsahujúcom IPv4 adresy
+ * @param buffer Dáta paketu
+ * @param header Hlavička paketu
+ */
+bool handle_IPv4(const u_char *buffer, const struct pcap_pkthdr *header)
+{
+    struct iphdr *iph = (struct iphdr *)(buffer + sizeof(struct ethhdr));
+    bool is_port = false;
+    get_ipv4_header(iph);
+    get_IP_name("IPv4");
+
+    switch (iph->protocol)
+    {
+    case ICMP4:
+        get_protocol_name("Internet Control Message Protocol version 4");
+        get_packet_data(buffer, header->caplen);
+        break;
+
+    case IGMP:
+        get_protocol_name("Internet Group Management Protocol");
+        get_packet_data(buffer, header->caplen);
+        break;
+
+    case TCP:
+        get_protocol_name("Transmission Control Protocol");
+        get_tcp_port_ipv4(buffer);
+        is_port = true;
+        get_packet_data(buffer, header->caplen);
+        break;
+
+    case UDP:
+        get_protocol_name("User Datagram Protocol");
+        get_udp_port_ipv4(buffer);
+        is_port = true;
+        get_packet_data(buffer, header->caplen);
+        break;
+    default:
+        break;
+    }
+    return is_port;
+}
+
+/**
+ * @brief Vloží do výstupnej štruktúry všetky potrebné informácie o pakete obsahujúcom IPv6 adresy
+ * @param buffer Dáta paketu
+ * @param header Hlavička paketu
+ */
+bool handle_IPv6(const u_char *buffer, const struct pcap_pkthdr *header)
+{
+    struct ip6_hdr *iph = (struct ip6_hdr *)(buffer + sizeof(struct ether_header));
+    int protocol = iph->ip6_nxt;
+    bool is_port = false;
+    get_ipv6_header(iph);
+    get_IP_name("IPv6");
+    switch (protocol)
+    {
+    case TCP:
+        get_protocol_name("Transmission Control Protocol");
+        get_tcp_port_ipv6(iph);
+        get_packet_data(buffer, header->caplen);
+        is_port = true;
+        break;
+
+    case UDP:
+        get_protocol_name("User Datagram Protocol");
+        get_udp_port_ipv6(iph);
+        get_packet_data(buffer, header->caplen);
+        is_port = true;
+        break;
+
+    case ICMP6:;
+        struct icmp6_hdr *icmp_header = (struct icmp6_hdr *)((char *)iph + sizeof(struct ip6_hdr));
+        get_packet_data(buffer, header->caplen);
+
+        // Podľa typu ICMP hlavičky určí o ktorý z protokolov sa jedná
+        switch (icmp_header->icmp6_type)
+        {
+        case MLD_LISTENER_QUERY:
+            get_protocol_name("Multicast Listener Discovery");
+            get_message_type("MLD Listener Query");
+            break;
+        case MLD_LISTENER_REPORT:
+            get_protocol_name("Multicast Listener Discovery");
+            get_message_type("MLD Listener Report");
+            break;
+        case MLD_LISTENER_REDUCTION:
+            get_protocol_name("Multicast Listener Discovery");
+            get_message_type("MLD Listener Reduction");
+            break;
+        case ND_ROUTER_SOLICIT:
+            get_protocol_name("Neighbor Discovery Protocol");
+            get_message_type("NDP Router Solicitation");
+            break;
+        case ND_ROUTER_ADVERT:
+            get_protocol_name("Neighbor Discovery Protocol");
+            get_message_type("NDP Router Advertisement");
+            break;
+        case ND_NEIGHBOR_SOLICIT:
+            get_protocol_name("Neighbor Discovery Protocol");
+            get_message_type("NDP Neighbor Solicitation");
+            break;
+        case ND_NEIGHBOR_ADVERT:
+            get_protocol_name("Neighbor Discovery Protocol");
+            get_message_type("NDP Neighbor Advertisement");
+            break;
+        case ND_REDIRECT:
+            get_protocol_name("Neighbor Discovery Protocol");
+            get_message_type("NDP Redirect Message");
+            break;
+        case ICMP6_ECHO_REQUEST:
+            get_protocol_name("Internet Control Message Protocol version 6");
+            get_message_type("ICMPv6 Echo Request");
+            break;
+        case ICMP6_ECHO_REPLY:
+            get_protocol_name("Internet Control Message Protocol version 6");
+            get_message_type("ICMPv6 Echo Reply");
+            break;
+        default:
+            printf("This is not an MLD, NDP, ICMPv6 request, or ICMPv6 response message.\n");
+            break;
+        }
+        break;
+
+    default:
+        break;
+    }
+    return is_port;
+}
+
+/**
+ * @brief Vloží do výstupnej štruktúry všetky potrebné informácie o ARP pakete
+ * @param buffer Dáta paketu
+ * @param header Hlavička paketu
+ */
+void handle_ARP(const u_char *buffer, const struct pcap_pkthdr *header)
+{
+    get_arp_header(buffer);
+    get_IP_name("IPv4");
+    get_protocol_name("Address Resolution Protocol");
+    get_packet_data(buffer, header->caplen);
+}
+
+/**
  * @brief Vypíše konkrétne informácie o pakete podľa jeho typu
  * @param args Argumenty
  * @param header Hlavička paketu
@@ -383,127 +555,31 @@ void print_output(bool ports)
  */
 void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *buffer)
 {
-    static int tcp = 0, udp = 0, icmp = 0, others = 0, igmp = 0, total = 0, arp = 0, icmp6 = 0;
+    (void)args;
     struct ether_header *eth_hdr = (struct ether_header *)buffer;
     bool is_port = false;
     clear_output();
     create_timestamp(header);
     get_mac_adress(eth_hdr);
     get_frame_length(header);
-    ++total;
+
     if (ntohs(eth_hdr->ether_type) == ETHERTYPE_IP)
     {
-        struct iphdr *iph = (struct iphdr *)(buffer + sizeof(struct ethhdr));
-        get_ipv4_header(iph);
-        get_IP_name("IPv4");
-
-        switch (iph->protocol)
-        {
-        case ICMP4:
-            get_protocol_name("Internet Control Message Protocol version 4");
-            get_packet_data(buffer, header->caplen);
-            ++icmp;
-            break;
-
-        case IGMP:
-            get_protocol_name("Internet Group Management Protocol");
-            get_packet_data(buffer, header->caplen);
-            ++igmp;
-            break;
-
-        case TCP:
-            get_protocol_name("Transmission Control Protocol");
-            get_tcp_port_ipv4(buffer);
-            is_port = true;
-            get_packet_data(buffer, header->caplen);
-            ++tcp;
-            break;
-
-        case UDP:
-            get_protocol_name("User Datagram Protocol");
-            get_udp_port_ipv4(buffer);
-            is_port = true;
-            get_packet_data(buffer, header->caplen);
-            ++udp;
-            break;
-        default:
-            ++others;
-            break;
-        }
+        is_port = handle_IPv4(buffer, header);
     }
     else if (ntohs(eth_hdr->ether_type) == ETHERTYPE_IPV6)
     {
-        struct ip6_hdr *iph = (struct ip6_hdr *)(buffer + sizeof(struct ether_header));
-        int protocol = iph->ip6_nxt;
-        get_ipv6_header(iph);
-        get_IP_name("IPv6");
-        switch (protocol)
-        {
-        case TCP:
-            get_protocol_name("Transmission Control Protocol");
-            get_tcp_port_ipv6(iph);
-            get_packet_data(buffer, header->caplen);
-            is_port = true;
-            ++tcp;
-            break;
-
-        case UDP:
-            get_protocol_name("User Datagram Protocol");
-            get_udp_port_ipv6(iph);
-            get_packet_data(buffer, header->caplen);
-            is_port = true;
-            ++udp;
-            break;
-
-        case ICMP6:
-            ++icmp6;
-            struct icmp6_hdr *icmp_header = (struct icmp6_hdr *)((char *)iph + sizeof(struct ip6_hdr));
-
-            // Podľa typu ICMP hlavičky určí o ktorý z protokolov sa jedná
-            switch (icmp_header->icmp6_type)
-            {
-            case MLD_LISTENER_QUERY:
-            case MLD_LISTENER_REPORT:
-            case MLD_LISTENER_REDUCTION:
-                get_protocol_name("Multicast Listener Discovery");
-                break;
-            case ND_ROUTER_SOLICIT:
-            case ND_ROUTER_ADVERT:
-            case ND_NEIGHBOR_SOLICIT:
-            case ND_NEIGHBOR_ADVERT:
-            case ND_REDIRECT:
-                get_protocol_name("Neighbor Discovery Protocol");
-                break;
-            case ICMP6_ECHO_REQUEST:
-            case ICMP6_ECHO_REPLY:
-                get_protocol_name("Internet Control Message Protocol version 6");
-                get_packet_data(buffer, header->caplen);
-                break;
-            default:
-                printf("This is not an MLD, NDP, ICMPv6 request, or ICMPv6 response message.\n");
-                break;
-            }
-            break;
-
-        default:
-            ++others;
-            break;
-        }
+        is_port = handle_IPv6(buffer, header);
     }
     else if (ntohs(eth_hdr->ether_type) == ETHERTYPE_ARP)
     {
-        ++arp;
-        get_arp_header(buffer);
-        get_IP_name("IPv4");
-        get_protocol_name("Address Resolution Protocol");
-        get_packet_data(buffer, header->caplen);
+        handle_ARP(buffer, header);
     }
     else
     {
         printf("Unknown packet type\n");
     }
     print_output(is_port);
-    // printf("TCP : %d   UDP : %d   ICMP4 : %d  ARP: %d NDP:%d IGMP : %d MLD: %d   Others : %d   Total : %d\n", tcp, udp, icmp, arp, ndp, igmp, icmp6, others, total);
     fflush(stdout);
 }
 
@@ -640,18 +716,6 @@ int main(int argc, char *argv[])
         free_resources(arguments, out, filter);
         print_active_interfaces(errbuff);
     }
-
-    // printf("interface:%s\n", arguments->interface);
-    // printf("port:%s\n", arguments->port);
-    // printf("tcp:%d\n", arguments->tcp);
-    // printf("udp:%d\n", arguments->udp);
-    // printf("icmp4:%d\n", arguments->icmp4);
-    // printf("icmp6:%d\n", arguments->icmp6);
-    // printf("arp:%d\n", arguments->arp);
-    // printf("ndp:%d\n", arguments->ndp);
-    // printf("igmp:%d\n", arguments->igmp);
-    // printf("mld:%d\n", arguments->mld);
-    // printf("number_of_packets:%d\n", arguments->number_of_packets);
 
     if (pcap_lookupnet(arguments->interface, &pNet, &pMask, errbuff) == ERROR)
     {

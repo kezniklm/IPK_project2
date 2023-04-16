@@ -5,22 +5,15 @@
  * @date 2023-04-17
  */
 
-#include <stdio.h>
-#include <signal.h>
+#include <time.h>
 #include <pcap.h>
-#include <arpa/inet.h>
-#include <netinet/if_ether.h>
+#include <signal.h>
 #include <netinet/ether.h>
 #include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/udp.h>
 #include <netinet/icmp6.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <time.h>
 
 #include "args.h"
 
@@ -51,9 +44,9 @@ struct Output
     char *src_IP;
     char *dst_IP;
     char *protocol;
+    char *message_type;
     int src_port;
     int dst_port;
-    char *byte_offset;
     char *data;
 };
 
@@ -110,6 +103,12 @@ void get_mac_adress(struct ether_header *eth_hdr);
 void get_frame_length(const struct pcap_pkthdr *header);
 
 /**
+ * @brief Nastaví typ IP adresy podľa parametru name
+ * @param name
+ */
+void get_IP_name(char *name);
+
+/**
  * @brief Z IPV4 hlavičky pridá do výstupnej štruktúry IP adresy zdroja a cieľa
  * @param iph IPv4 hlavička
  */
@@ -120,6 +119,12 @@ void get_ipv4_header(struct iphdr *iph);
  * @param iph IPv6 hlavička
  */
 void get_ipv6_header(struct ip6_hdr *iph);
+
+/**
+ * @brief Nastaví typ protokolu podľa parametru name
+ * @param name
+ */
+void get_protocol_name(char *name);
 
 /**
  * @brief Z TCP hlavičky pridá do výstupnej štruktúry porty zdroja a cieľa
@@ -146,6 +151,12 @@ void get_udp_port_ipv4(const u_char *Buffer);
 void get_udp_port_ipv6(struct ip6_hdr *iph);
 
 /**
+ * @brief Nastaví typ správy podľa parametru name
+ * @param name
+ */
+void get_message_type(char *name);
+
+/**
  * @brief Z ARP rámca pridá do výstupnej štruktúry IP adresy zdroja a cieľa
  * @param buffer Dáta packetu
  */
@@ -162,6 +173,27 @@ void get_packet_data(const u_char *data, int size);
  * @brief Vypíše výstupné údaje zo štruktúry Output na štandardný výstup
  */
 void print_output(bool ports);
+
+/**
+ * @brief Vloží do výstupnej štruktúry všetky potrebné informácie o pakete obsahujúcom IPv4 adresy
+ * @param buffer Dáta paketu
+ * @param header Hlavička paketu
+ */
+bool handle_IPv4(const u_char *buffer, const struct pcap_pkthdr *header);
+
+/**
+ * @brief Vloží do výstupnej štruktúry všetky potrebné informácie o pakete obsahujúcom IPv6 adresy
+ * @param buffer Dáta paketu
+ * @param header Hlavička paketu
+ */
+bool handle_IPv6(const u_char *buffer, const struct pcap_pkthdr *header);
+
+/**
+ * @brief Vloží do výstupnej štruktúry všetky potrebné informácie o ARP pakete
+ * @param buffer Dáta paketu
+ * @param header Hlavička paketu
+ */
+void handle_ARP(const u_char *buffer, const struct pcap_pkthdr *header);
 
 /**
  * @brief Vypíše konkrétne informácie o pakete podľa jeho typu
