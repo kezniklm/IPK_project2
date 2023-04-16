@@ -13,7 +13,7 @@ CFLAGS = -std=c18 -pedantic -Wall -Wextra -g -fcommon -D_DEFAULT_SOURCE -lpcap
 .PHONY: error.o args.o ipk-sniffer.o ipk-sniffer zip clean
 
 ipk-sniffer: error.o args.o ipk-sniffer.o
-	$(CC) $(CFLAGS) error.o args.o ipk-sniffer.o -o ipk-sniffer
+	$(CC) $(CFLAGS) error.o args.o ipk-sniffer.o -o ipk-sniffer -lpcap 
 
 error.o: error.h error.c 
 	$(CC) $(CFLAGS) -c error.c -o error.o
