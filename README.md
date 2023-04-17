@@ -59,9 +59,14 @@ $ ../ipk-sniffer [-i interface | --interface interface] {-p port [--tcp|-t] [--u
     --mld
         Zobrazí iba MLD pakety 
     -n <číslo>
-        Špecifikuje počet paketov, ktoré majú byť zobrazené. V prípade chýbajúce argumentu sa počet paketov na zobrazenie rovná 1
+        Špecifikuje počet paketov, ktoré majú byť zobrazené. V prípade 
+        chýbajúceho argumentu sa počet paketov na zobrazenie rovná 1
+    --ext 
+        Zobrazí dodatočné a zároveň detailnejšie výpisy - jedná sa o                
+        rozšírenie
 
-    Pokiaľ nie sú protokoly špecifikované, všetky z nich môžu byť zachytené a následne vypísané.
+    Pokiaľ nie sú protokoly špecifikované, všetky z nich môžu byť zachytené a 
+    následne vypísané.
     Všetky argumenty môžu byť v hociakom poradí.
 ```
 ## Príklady použitia
@@ -78,6 +83,11 @@ $ ../ipk-sniffer [-i interface | --interface interface] {-p port [--tcp|-t] [--u
 
 ## Príklad funkcionality
 ```
+./ipk-sniffer
+
+lo0
+eth0
+
 ./ipk-sniffer -i
 
 lo0
@@ -105,6 +115,13 @@ dst port: 80
 
 * **IP adresa** *(Internet Protocol Address)* je číselná adresa, ktorá identifikuje zariadenie pripojené k počítačovej sieti. Každé zariadenie, ktoré je pripojené k internetu, má pridelenú **jedinečnú** IP adresu, ktorá sa skladá z dvoch častí: **adresy siete** a **adresy rozhrania**. Adresa siete označuje sieť, do ktorej zariadenie patrí, zatiaľ čo adresa rozhrania identifikuje samotné zariadenie v rámci danej siete. IP adresa sa v súčasnosti používa vo verzii **IPv4** alebo **IPv6**, kde IPv6 používa dlhšiu číselnú sekvenciu a umožňuje tak viacero možností pre pridelenie unikátnych adries [[1](#ref1)].
 
+* **Rámec** *(Frame)* je základnou jednotkou dát, ktoré sú prenášané v počítačovej sieti na fyzickej vrstve. Každý rámec obsahuje dáta a riadiace informácie, vrátane zdrojovej a cieľovej adresy, typu dát a kontrolného súčtu. Zdrojová a cieľová adresa v rámci sú fyzické adresy, ktoré sa zvyčajne nazývajú MAC adresy (Media Access Control). Typ dát v rámci označuje, aký typ dát sa prenáša v rámci, napríklad IP paket alebo ARP (Address Resolution Protocol) rámec. Kontrolný súčet slúži na kontrolu chýb v rámci a zabezpečuje, že dáta boli správne prenesené z jedného zariadenia na druhé [[9](#ref9)].
+
+* **Paket** *(Packet)* môže byť definovaný ako blok údajov, ktoré sú prenášané cez sieť z jedného uzla do druhého. Tieto údaje môžu zahŕňať rôzne informácie, ako sú napríklad užitočné dáta aplikácie, hlavičky protokolov a kontrolné súčty.
+Hlavička paketu obsahuje dôležité informácie o pakete, ako napríklad zdrojovú a cieľovú adresu, identifikátor protokolu a kontrolné súčty. Tieto informácie sú použité na správne doručenie paketu na jeho cieľovú adresu a overenie jeho správnej prijateľnosti. Okrem užitočných dát môže paket obsahovať aj informácie o spôsobe spracovania a doručenia paketu cez sieť. Tieto informácie sa zvyčajne nachádzajú v hlavičkách protokolov, ktoré sú umiestnené medzi užitočnými dátami a sieťovou vrstvou [[8](#ref8)].
+
+* **Zapúzdrenie** - v počítačových sieťach sa dáta prenášajú v jednotlivých paketoch. Každý paket má dve základné časti - hlavičku a telo. Hlavička obsahuje informácie potrebné na doručenie paketu na správne miesto v sieti, ako sú zdrojová a cieľová adresa, kontrolné súčty a dĺžka paketu. Telo paketu obsahuje samotné dáta, ktoré sa prenášajú. Pri prenose dát cez sieť sa každý paket zapúzdruje, teda obalí sa do nového paketu, ktorý obsahuje adresu cieľovej stanice. Tento proces sa opakuje na každom medzietape, až kým sa paket nedostane na cieľovú staniciu. Tam sa paket rozbalí a dáta sa spracujú. Zapúzdrenie umožňuje prenos dát medzi rôznymi sieťovými vrstvami a zabezpečuje ich spoľahlivý prenos v sieti [[10](#ref10)].
+
 * **TCP** *(Transmission Control Protocol)*. Jedná sa o protokol pre spoľahlivý prenos dát v počítačových sieťach. TCP zabezpečuje, že dáta sú **správne doručené** medzi dvoma zariadeniami v sieti a že sú doručené v **správnom poradí**.
 TCP funguje tak, že dáta sú rozdelené na menšie kúsky nazývané segmenty a každý segment je označený číslom sekvencie. Tieto segmenty sú potom posielané cez sieť, pričom sú overované na správnosť doručenia a poradia pomocou čísel sekvencií. TCP tiež využíva techniku nazývanú potvrdenie, ktorá zabezpečuje, že zariadenie, ktoré prijalo dáta, pošle späť potvrdenie o doručení týchto dát. Ak sa potvrdenie nevráti v určenom čase, TCP znovu pošle segment, aby zabezpečil správne doručenie [[2](#ref2)].
 
@@ -126,8 +143,91 @@ TCP funguje tak, že dáta sú rozdelené na menšie kúsky nazývané segmenty 
 
 * **MLD** *(Multicast Listener Discovery)* je protokol, ktorý sa používa na získanie informácií o multicast skupinách, ktoré sú dostupné v sieti a na určenie, ktoré zariadenia sú členmi týchto skupín. MLD protokol umožňuje multicastovým routovacím protokolom zistiť, ktoré linky v sieti majú záujem o multicastový tok a tým minimalizovať množstvo nevyžiadanej prevádzky [[6](#ref6)].
 
+* **PCAP** *(Packet Capture)* je jednou z najrozšírenejších softvérových knižníc používaných na zachytávanie a analýzu sieťových paketov. Používa sa pre rôzne účely, ako sú sieťová bezpečnosť, sieťové testovanie a ladenie aplikácií.
+PCAP umožňuje aplikáciám zachytávať pakety na rôznych sieťových rozhraniach a spracovávať ich pomocou jazykov ako C a Python. Poskytuje tiež funkcie pre filtrovanie paketov na základe rôznych kritérií, ako sú zdrojová adresa, cieľová adresa, typ protokolu a port. Knižnica pcap bola pôvodne vyvinutá pre Unixové operačné systémy, no existujú aj porty pre Windows a iné operačné systémy. Populárna sieťová analytická aplikácia Wireshark používa knižnicu pcap na zachytávanie a analýzu paketov [[7](#ref7)].
+
 ## Popis implementácie
 
+* **Overenie argumentov programu** \
+Program ako prvé skontroluje správnosť argumentov programu, čo zahŕňa overenie čísla portu tak aby bol v intervale <0,65535>, overenie aby počet paketov n bol integer a celkovo korektnosť zápisu všetkých argumentov. V prípade, že bolo zadané väčšie množstvo argumentov, neexistujúci argument alebo zlý formát daného argumentu tak program skončí s chybovou hláškou podľa danej chyby.
+V prípade úspešného spracovania argumentov budú argumenty uložené v štruktúre **Arguments**. Overenie argumentov zaisťujú funkcie z **args.h** implementované v **args.c** a chybové hlášky a korektné ukončenie programu zaisťujú funkcie z **error.h** implementované v **error.c**.
+
+* **Implementácia sieťového analyzéra (sniffera)** \
+Ako prvé sa zo štruktúry **Arguments** načítajú argumenty programu. Následne sa v prípade, že nebolo zadané žiadne rozhranie vypíšu všetky dostupné rozhrania. V prípade, že bolo zadané konkrétne rozhranie, je získaná jeho sieťová maska pomocou funkcie **pcap_lookupnet()**. V prípade úspešného získania sieťovej masky je dané rozhranie otvorené pomocou funkcie **pcap_open_live()** a taktiež je overené pomocou funkcie **pcap_datalink()**, že sa jedná o ethernetové rozhranie. Funkcia **set_filter()** nastaví filter podľa zadaný argumentov, tzn. podľa obsahu štruktúry **Arguments**. Funkcia **pcap_setfilter()** daný filter nastaví na filtrovanie. Následne **pcap_loop()** iteruje skrz pakety (rámce), ktoré budú splňovať podmienky filtrovania. Funkcia **pcap_loop()** v rámci iterovania volá pre každý paket (rámec) funkciu **packet_handler()**, ktorá podľa typu ethernetového rámca volá funkcie **handle_IPv4()** pre IPv4, **handle_IPv6()** pre IPv6 a **handle_ARP()** pre ARP.
+
+## Rozšírenia
+Implementácia je rozšírená o prepínač **--ext**, ktorá umožňuje výpis dodatočných informácii o packetoch. Implementácia taktiež podporuje **Jumbo rámce** o typickej veľkosti 9000 bytov.
+
+## Testovanie
+Testovanie bolo vykonávané na operačných systémoch Ubuntu a referenčnom NixOS, kde boli zdrojové súbory preložené pomocou GCC 11.3.0 .
+Boli testované všetky podporované protokoly, pričom výstup z programu bol porovnávaný pomocou nástroja diff, prípadne ručne s referenčným výstupom z programu **TCPDUMP** alebo **Wireshark**. Pre zaistenie konzistentnosti testovania boli ako prvé pakety zachytené do .pcapng súborov a následne znovu odosielané pomocou nástroja **tcpreplay**.
+* **NixOs verzie 22.11.20230221.a3d745e (Raccoon)**
+    * Testovanie argumentov programu \
+        * Výpis všetkých dostupných rozhraní
+            * TCPDUMP
+                ```
+                $sudo tcpdump -D
+                    1.enp0s3 [Up, Running, Connected]
+                    2.any (Pseudo-device that captures on all interfaces) 
+                    [Up, Running]
+                    3.lo [Up, Running, Loopback]
+                    4.nflog (Linux netfilter log (NFLOG) interface) [none]
+                    5.nfqueue (Linux netfilter queue (NFQUEUE) interface) [none]
+                ```
+            * ipk-sniffer
+                ```
+                $ sudo ./ipk-sniffer
+                    enp0s3
+                    any
+                    lo
+                    nflog
+                    nfqueue
+                ```
+                ```
+                $ sudo ./ipk-sniffer -i
+                    enp0s3
+                    any
+                    lo
+                    nflog
+                    nfqueue
+                ```
+                ```
+                $ sudo ./ipk-sniffer --interface
+                    enp0s3
+                    any
+                    lo
+                    nflog
+                    nfqueue
+                ```
+        
+        Ďalšie testovanie argumentov bolo vykonávané vzájomne s testovanim jednotlivých protokolov, preto už dalšie testovanie argumentov neuvádzam.
+    * Testovanie jednotlivých protokolov s parametrom --ext \
+        * Testovanie protokolu TCP 
+            * Wireshark
+                ```
+                Src: 00:1d:60:b3:01:84
+                Dst: 00:26:62:2f:47:87
+                Frame Length: 74 bytes 
+                Internet Protocol Version 4
+                Src: 192.168.1.3
+                Dst: 63.116.243.97
+                Transmission Control Protocol
+                Src: 58816
+                Dst: 80
+                
+                0000   00 26 62 2f 47 87 00 1d 60 b3 01 84 08 00 45 00   .&b/G...`.....E.
+                0010   00 3c a8 cf 40 00 40 06 9d 6b c0 a8 01 03 3f 74   .<..@.@..k....?t
+                0020   f3 61 e5 c0 00 50 e5 94 3d aa 00 00 00 00 a0 02   .a...P..=.......
+                0030   16 d0 9d e2 00 00 02 04 05 b4 04 02 08 0a 00 17   ................
+                0040   95 65 00 00 00 00 01 03 03 07                     .e........
+
+
+                ```
+    
+        
+
+* **Ubuntu 22.04.2 LTS - WSL** \
+Testovanie na operačnom systéme **Ubuntu 22.04.2 LTS** bolo vykonané s rovnakými vstupmi ako na **NixOs verzie 22.11.20230221.a3d745e (Raccoon)** pričom sa ukázalo, že všetky výstupy sú totožné. Z toho dôvodu ukážky z testovania neuvádzam.
 
 ## Zdroje
 <a id="ref1"></a> [1] Kurose, J. F., & Ross, K. W. (2017). Computer Networking: A Top-Down Approach. Pearson. (Kapitola 4)
@@ -141,3 +241,11 @@ TCP funguje tak, že dáta sú rozdelené na menšie kúsky nazývané segmenty 
 <a id="ref5"></a> [5] Kurose, J. F., & Ross, K. W. (2017). Computer Networking: A Top-Down Approach. Pearson. (Kapitola 5)
 
 <a id="ref6"></a> [6] Kurose, J. F., & Ross, K. W. (2017). Computer Networking: A Top-Down Approach. Pearson. (Kapitola 7)
+
+<a id="ref7"></a>[7] Kurose, J. F., & Ross, K. W. (2017). Computer Networking: A Top-Down Approach. Pearson. (Kapitola 2.5)
+
+<a id="ref8"></a>[8] Kurose, J. F., & Ross, K. W. (2017). Computer Networking: A Top-Down Approach. Pearson. (Kapitola 2.2)
+
+<a id="ref8"></a>[9] Kurose, J. F., & Ross, K. W. (2017). Computer Networking: A Top-Down Approach. Pearson. (Kapitola 2)
+
+<a id="ref10"></a>[10] Kurose, J. F., & Ross, K. W. (2017). Computer Networking: A Top-Down Approach. Pearson. (Kapitola 1.3.3)
