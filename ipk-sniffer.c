@@ -8,10 +8,8 @@
 #include "ipk-sniffer.h"
 
 /* Globálne premenné nutné pre korektné ukončenie programu pomocou signálu SIGINT (Ctrl-c) */
-struct Output *out;
-struct Arguments *arguments;
 pcap_t *opened_session;
-char *filter;
+struct Output *out;
 
 /**
  * @brief V prípade ukončenia programu pomocou signálu SIGINT korektne ukončí program
@@ -19,9 +17,7 @@ char *filter;
  */
 void catch_sigint()
 {
-    free_resources(arguments, out, filter);
-    pcap_close(opened_session);
-    exit(SIGINT);
+    pcap_breakloop(opened_session);
 }
 
 /**
@@ -714,8 +710,9 @@ int main(int argc, char *argv[])
 {
     /* Zachytenie CTRL+C (SIGINT) */
     signal(SIGINT, catch_sigint);
+    struct Arguments *arguments;
     struct bpf_program fp;
-    char errbuff[PCAP_ERRBUF_SIZE];
+    char *filter,errbuff[PCAP_ERRBUF_SIZE];
     bpf_u_int32 pMask, pNet;
 
     allocate_resources(&arguments, &out, &filter);
@@ -758,6 +755,8 @@ int main(int argc, char *argv[])
     pcap_loop(opened_session, arguments->number_of_packets, packet_handler, (u_char *)&out);
 
     free_resources(arguments, out, filter);
+    pcap_freecode(&fp);
     pcap_close(opened_session);
+    
     exit(EXIT_SUCCESS);
 }
