@@ -428,7 +428,7 @@ bool handle_IPv4(const u_char *buffer, const struct pcap_pkthdr *header)
     struct iphdr *iph = (struct iphdr *)(buffer + sizeof(struct ethhdr));
     bool is_port = false;
     get_ipv4_header(iph);
-    get_IP_name("IPv4");
+    get_IP_name("Internet Protocol Version 4");
 
     switch (iph->protocol)
     {
@@ -472,7 +472,7 @@ bool handle_IPv6(const u_char *buffer, const struct pcap_pkthdr *header)
     int protocol = iph->ip6_nxt;
     bool is_port = false;
     get_ipv6_header(iph);
-    get_IP_name("IPv6");
+    get_IP_name("Internet Protocol Version 6");
     switch (protocol)
     {
     case TCP:
@@ -555,7 +555,7 @@ bool handle_IPv6(const u_char *buffer, const struct pcap_pkthdr *header)
 void handle_ARP(const u_char *buffer, const struct pcap_pkthdr *header)
 {
     get_arp_header(buffer);
-    get_IP_name("IPv4");
+    get_IP_name("Internet Protocol Version 4");
     get_protocol_name("Address Resolution Protocol");
     get_packet_data(buffer, header->caplen);
 }
