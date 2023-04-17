@@ -160,7 +160,8 @@ Implementácia je rozšírená o prepínač **--ext**, ktorá umožňuje výpis 
 
 ## Testovanie
 Testovanie bolo vykonávané na operačných systémoch Ubuntu a referenčnom NixOS, kde boli zdrojové súbory preložené pomocou GCC 11.3.0 .
-Boli testované všetky podporované protokoly, pričom výstup z programu bol porovnávaný pomocou nástroja diff, prípadne ručne s referenčným výstupom z programu **TCPDUMP** alebo **Wireshark**. Pre zaistenie konzistentnosti testovania boli ako prvé pakety zachytené do .pcapng súborov a následne znovu odosielané pomocou nástroja **tcpreplay**.
+Boli testované všetky podporované protokoly, pričom výstup z programu bol porovnávaný pomocou test.py, prípadne ručne s referenčným výstupom z programu **TCPDUMP** alebo **Wireshark**. Pre zaistenie konzistentnosti testovania boli ako prvé pakety zachytené do .pcapng súborov a následne znovu odosielané pomocou nástroja **tcpreplay**.
+Následne boli porovnané výsledné verzie medzi sebou pomocou skriptu **test.py**, ktorý porovnával výstup programu **Wireshark** (.src súbory) a **ipk-sniffer** (.out súbory). V prípade úspešného porovnania je výsledok prázdny reťazec "".
 * **NixOs verzie 22.11.20230221.a3d745e (Raccoon)**
     * Testovanie argumentov programu \
         * Výpis všetkých dostupných rozhraní
@@ -201,31 +202,324 @@ Boli testované všetky podporované protokoly, pričom výstup z programu bol p
                 ```
         
         Ďalšie testovanie argumentov bolo vykonávané vzájomne s testovanim jednotlivých protokolov, preto už dalšie testovanie argumentov neuvádzam.
-    * Testovanie jednotlivých protokolov s parametrom --ext \
+    * Testovanie jednotlivých protokolov s parametrom --ext (timestamp nebol testovaný) 
         * Testovanie protokolu TCP 
-            * Wireshark
+            * Wireshark (súbor TCP.src)
                 ```
-                Src: 00:1d:60:b3:01:84
-                Dst: 00:26:62:2f:47:87
-                Frame Length: 74 bytes 
+                src MAC: 00:1d:60:b3:01:84
+                dst MAC: 00:26:62:2f:47:87
+                frame length: 74 bytes 
                 Internet Protocol Version 4
-                Src: 192.168.1.3
-                Dst: 63.116.243.97
+                src IP: 192.168.1.3
+                dst IP: 63.116.243.97
                 Transmission Control Protocol
-                Src: 58816
-                Dst: 80
+                src port: 58816
+                dst port: 80
                 
-                0000   00 26 62 2f 47 87 00 1d 60 b3 01 84 08 00 45 00   .&b/G...`.....E.
-                0010   00 3c a8 cf 40 00 40 06 9d 6b c0 a8 01 03 3f 74   .<..@.@..k....?t
-                0020   f3 61 e5 c0 00 50 e5 94 3d aa 00 00 00 00 a0 02   .a...P..=.......
-                0030   16 d0 9d e2 00 00 02 04 05 b4 04 02 08 0a 00 17   ................
-                0040   95 65 00 00 00 00 01 03 03 07                     .e........
-
-
+                0x0000:   00 26 62 2f 47 87 00 1d 60 b3 01 84 08 00 45 00   .&b/G...`.....E.
+                0x0010:   00 3c a8 cf 40 00 40 06 9d 6b c0 a8 01 03 3f 74   .<..@.@..k....?t
+                0x0020:   f3 61 e5 c0 00 50 e5 94 3d aa 00 00 00 00 a0 02   .a...P..=.......
+                0x0030:   16 d0 9d e2 00 00 02 04 05 b4 04 02 08 0a 00 17   ................
+                0x0040:   95 65 00 00 00 00 01 03 03 07                     .e........
                 ```
-    
-        
+            * ipk-sniffer (súbor TCP.out)
+               ```
+                timestamp: 2023-04-17T17:52:39.817+02:00
+                src MAC: 00:1d:60:b3:01:84
+                dst MAC: 00:26:62:2f:47:87
+                frame length: 74 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.1.3
+                dst IP: 63.116.243.97
+                Transmission Control Protocol
+                src port: 58816
+                dst port: 80
 
+                0x0000:  00 26 62 2F 47 87 00 1D 60 B3 01 84 08 00 45 00         .&b/G...`.....E.
+                0x0010:  00 3C A8 CF 40 00 40 06 9D 6B C0 A8 01 03 3F 74         .<..@.@..k....?t
+                0x0020:  F3 61 E5 C0 00 50 E5 94 3D AA 00 00 00 00 A0 02         .a...P..=.......
+                0x0030:  16 D0 9D E2 00 00 02 04 05 B4 04 02 08 0A 00 17         ................
+                0x0040:  95 65 00 00 00 00 01 03 03 07                           .e........
+               ``` 
+            * Výstup testu
+                ``````
+        * Testovanie protokolu UDP 
+            * Wireshark (súbor UDP.src)
+                ```
+                src MAC: 00:14:0b:33:33:27
+                dst MAC: d0:7a:b5:96:cd:0a
+                frame length: 109 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.1.101
+                dst IP: 178.123.13.120
+                User Datagram Protocol
+                src port: 42559
+                dst port: 26895
+
+                0x0000:   d0 7a b5 96 cd 0a 00 14 0b 33 33 27 08 00 45 00   .z.......33'..E.
+                0x0010:   00 5f 31 16 00 00 80 11 87 77 c0 a8 01 65 b2 7b   ._1......w...e.{
+                0x0020:   0d 78 a6 3f 69 0f 00 4b 6a 54 64 31 3a 61 64 32   .x.?i..KjTd1:ad2
+                0x0030:   3a 69 64 32 30 3a 5a fa 29 99 3a 5e ce 19 d1 8b   :id20:Z.).:^....
+                0x0040:   aa 9b 4e 4d f9 2e 51 52 fe ff 65 31 3a 71 34 3a   ..NM..QR..e1:q4:
+                0x0050:   70 69 6e 67 31 3a 74 34 3a 85 72 00 00 31 3a 76   ping1:t4:.r..1:v
+                0x0060:   34 3a 55 54 7e 62 31 3a 79 31 3a 71 65            4:UT~b1:y1:qe
+                ```
+            * ipk-sniffer (súbor UDP.out)
+                ```
+                timestamp: 2023-04-17T19:15:03.594+02:00
+                src MAC: 00:14:0b:33:33:27
+                dst MAC: d0:7a:b5:96:cd:0a
+                frame length: 109 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.1.101
+                dst IP: 178.123.13.120
+                User Datagram Protocol
+                src port: 42559
+                dst port: 26895
+
+                0x0000:  D0 7A B5 96 CD 0A 00 14 0B 33 33 27 08 00 45 00         .z.......33'..E.
+                0x0010:  00 5F 31 16 00 00 80 11 87 77 C0 A8 01 65 B2 7B         ._1......w...e.{
+                0x0020:  0D 78 A6 3F 69 0F 00 4B 6A 54 64 31 3A 61 64 32         .x.?i..KjTd1:ad2
+                0x0030:  3A 69 64 32 30 3A 5A FA 29 99 3A 5E CE 19 D1 8B         :id20:Z.).:^....
+                0x0040:  AA 9B 4E 4D F9 2E 51 52 FE FF 65 31 3A 71 34 3A         ..NM..QR..e1:q4:
+                0x0050:  70 69 6E 67 31 3A 74 34 3A 85 72 00 00 31 3A 76         ping1:t4:.r..1:v
+                0x0060:  34 3A 55 54 7E 62 31 3A 79 31 3A 71 65                  4:UT~b1:y1:qe
+                ```
+            * Výstup testu
+                ``````
+        * Testovanie protokolu ICMPv4 
+            * Wireshark (súbor ICMPv4.src)
+                ``` 
+                src MAC: ca:01:59:d6:00:08
+                dst MAC: 52:54:00:a7:a5:80
+                frame length: 114 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.122.33
+                dst IP: 192.168.122.1
+                Internet Control Message Protocol version 4
+
+                0x0000:   52 54 00 a7 a5 80 ca 01 59 d6 00 08 08 00 45 00   RT......Y.....E.
+                0x0010:   00 64 00 04 00 00 ff 01 46 21 c0 a8 7a 21 c0 a8   .d......F!..z!..
+                0x0020:   7a 01 08 00 38 73 00 00 00 04 00 00 00 00 00 03   z...8s..........
+                0x0030:   45 d0 ab cd ab cd ab cd ab cd ab cd ab cd ab cd   E...............
+                0x0040:   ab cd ab cd ab cd ab cd ab cd ab cd ab cd ab cd   ................
+                0x0050:   ab cd ab cd ab cd ab cd ab cd ab cd ab cd ab cd   ................
+                0x0060:   ab cd ab cd ab cd ab cd ab cd ab cd ab cd ab cd   ................
+                0x0070:   ab cd                                             ..
+                ```     
+            * ipk-sniffer (súbor ICMPv4.out)
+                ``` 
+                timestamp: 2023-04-17T19:25:25.198+02:00
+                src MAC: ca:01:59:d6:00:08
+                dst MAC: 52:54:00:a7:a5:80
+                frame length: 114 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.122.33
+                dst IP: 192.168.122.1
+                Internet Control Message Protocol version 4
+
+                0x0000:  52 54 00 A7 A5 80 CA 01 59 D6 00 08 08 00 45 00         RT......Y.....E.
+                0x0010:  00 64 00 04 00 00 FF 01 46 21 C0 A8 7A 21 C0 A8         .d......F!..z!..
+                0x0020:  7A 01 08 00 38 73 00 00 00 04 00 00 00 00 00 03         z...8s..........
+                0x0030:  45 D0 AB CD AB CD AB CD AB CD AB CD AB CD AB CD         E...............
+                0x0040:  AB CD AB CD AB CD AB CD AB CD AB CD AB CD AB CD         ................
+                0x0050:  AB CD AB CD AB CD AB CD AB CD AB CD AB CD AB CD         ................
+                0x0060:  AB CD AB CD AB CD AB CD AB CD AB CD AB CD AB CD         ................
+                0x0070:  AB CD                                                   ..
+                ``` 
+            * Výstup testu
+                ``````
+        * Testovanie protokolu ICMPv6 
+            * Wireshark (súbor ICMPv6.src)
+                ``` 
+                src MAC: 54:e1:ad:c1:2d:ee
+                dst MAC: 30:9c:23:28:c7:7a
+                frame length: 118 bytes
+                Internet Protocol Version 6
+                src IP: fe80::8f8a:681d:7918:7cab
+                dst IP: fe80::2d5:8ff8:38e:894
+                Internet Control Message Protocol version 6
+                ICMPv6 Echo Reply
+
+                0x0000:   30 9c 23 28 c7 7a 54 e1 ad c1 2d ee 86 dd 60 00   0.#(.zT...-...`.
+                0x0010:   c8 49 00 40 3a 40 fe 80 00 00 00 00 00 00 8f 8a   .I.@:@..........
+                0x0020:   68 1d 79 18 7c ab fe 80 00 00 00 00 00 00 02 d5   h.y.|...........
+                0x0030:   8f f8 03 8e 08 94 81 00 12 b1 00 28 00 07 56 d1   ...........(..V.
+                0x0040:   3a 64 00 00 00 00 8d 3f 05 00 00 00 00 00 10 11   :d.....?........
+                0x0050:   12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 21   .............. !
+                0x0060:   22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f 30 31   "#$%&'()*+,-./01
+                0x0070:   32 33 34 35 36 37                                 234567
+                ```     
+            * ipk-sniffer (súbor ICMPv6.out)
+                ``` 
+                timestamp: 2023-04-17T19:41:56.506+02:00
+                src MAC: 54:e1:ad:c1:2d:ee
+                dst MAC: 30:9c:23:28:c7:7a
+                frame length: 118 bytes
+                Internet Protocol Version 6
+                src IP: fe80::8f8a:681d:7918:7cab
+                dst IP: fe80::2d5:8ff8:38e:894
+                Internet Control Message Protocol version 6
+                ICMPv6 Echo Reply
+
+                0x0000:  30 9C 23 28 C7 7A 54 E1 AD C1 2D EE 86 DD 60 00         0.#(.zT...-...`.
+                0x0010:  C8 49 00 40 3A 40 FE 80 00 00 00 00 00 00 8F 8A         .I.@:@..........
+                0x0020:  68 1D 79 18 7C AB FE 80 00 00 00 00 00 00 02 D5         h.y.|...........
+                0x0030:  8F F8 03 8E 08 94 81 00 12 B1 00 28 00 07 56 D1         ...........(..V.
+                0x0040:  3A 64 00 00 00 00 8D 3F 05 00 00 00 00 00 10 11         :d.....?........
+                0x0050:  12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F 20 21         .............. !
+                0x0060:  22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F 30 31         "#$%&'()*+,-./01
+                0x0070:  32 33 34 35 36 37                                       234567
+                
+                ``` 
+            * Výstup testu
+                ``````
+        * Testovanie protokolu ARP 
+            * Wireshark (súbor ARP.src)
+                ``` 
+                src MAC: 52:54:00:a7:a5:80
+                dst MAC: ff:ff:ff:ff:ff:ff
+                frame length: 42 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.122.1
+                dst IP: 85.163.14.54
+                Address Resolution Protocol
+
+                0x0000:   ff ff ff ff ff ff 52 54 00 a7 a5 80 08 06 00 01   ......RT........
+                0x0010:   08 00 06 04 00 01 52 54 00 a7 a5 80 c0 a8 7a 01   ......RT......z.
+                0x0020:   00 00 00 00 00 00 55 a3 0e 36                     ......U..6
+                ```     
+            * ipk-sniffer (súbor ARP.out)
+                ``` 
+                timestamp: 2023-04-17T19:45:21.320+02:00
+                src MAC: 52:54:00:a7:a5:80
+                dst MAC: ff:ff:ff:ff:ff:ff
+                frame length: 42 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.122.1
+                dst IP: 85.163.14.54
+                Address Resolution Protocol
+
+                0x0000:  FF FF FF FF FF FF 52 54 00 A7 A5 80 08 06 00 01         ......RT........
+                0x0010:  08 00 06 04 00 01 52 54 00 A7 A5 80 C0 A8 7A 01         ......RT......z.
+                0x0020:  00 00 00 00 00 00 55 A3 0E 36                           ......U..6
+                ``` 
+            * Výstup testu
+                ``````
+        * Testovanie protokolu NDP
+            * Wireshark (súbor NDP.src)
+                ``` 
+                src MAC: ca:01:59:d6:00:08
+                dst MAC: 33:33:ff:d7:93:df
+                frame length: 86 bytes
+                Internet Protocol Version 6
+                src IP: fe80::c801:59ff:fed6:8
+                dst IP: ff02::1:ffd7:93df
+                Neighbor Discovery Protocol
+                NDP Neighbor Solicitation
+
+                0x0000:   33 33 ff d7 93 df ca 01 59 d6 00 08 86 dd 6e 00   33......Y.....n.
+                0x0010:   00 00 00 20 3a ff fe 80 00 00 00 00 00 00 c8 01   ... :...........
+                0x0020:   59 ff fe d6 00 08 ff 02 00 00 00 00 00 00 00 00   Y...............
+                0x0030:   00 01 ff d7 93 df 87 00 76 37 00 00 00 00 fe 80   ........v7......
+                0x0040:   00 00 00 00 00 00 48 38 51 ff fe d7 93 df 01 01   ......H8Q.......
+                0x0050:   ca 01 59 d6 00 08                                 ..Y...
+                ```     
+            * ipk-sniffer (súbor NDP.out)
+                ``` 
+                timestamp: 2023-04-17T19:48:15.152+02:00
+                src MAC: ca:01:59:d6:00:08
+                dst MAC: 33:33:ff:d7:93:df
+                frame length: 86 bytes
+                Internet Protocol Version 6
+                src IP: fe80::c801:59ff:fed6:8
+                dst IP: ff02::1:ffd7:93df
+                Neighbor Discovery Protocol
+                NDP Neighbor Solicitation
+
+                0x0000:  33 33 FF D7 93 DF CA 01 59 D6 00 08 86 DD 6E 00         33......Y.....n.
+                0x0010:  00 00 00 20 3A FF FE 80 00 00 00 00 00 00 C8 01         ... :...........
+                0x0020:  59 FF FE D6 00 08 FF 02 00 00 00 00 00 00 00 00         Y...............
+                0x0030:  00 01 FF D7 93 DF 87 00 76 37 00 00 00 00 FE 80         ........v7......
+                0x0040:  00 00 00 00 00 00 48 38 51 FF FE D7 93 DF 01 01         ......H8Q.......
+                0x0050:  CA 01 59 D6 00 08                                       ..Y...
+                ``` 
+            * Výstup testu
+                ``````
+        * Testovanie protokolu IGMP
+            * Wireshark (súbor IGMP.src)
+                ``` 
+                src MAC: 52:54:00:a7:a5:80
+                dst MAC: 01:00:5e:00:00:16
+                frame length: 54 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.122.1
+                dst IP: 224.0.0.22
+                Internet Group Management Protocol
+
+                0x0000:   01 00 5e 00 00 16 52 54 00 a7 a5 80 08 00 46 c0   ..^...RT......F.
+                0x0010:   00 28 00 00 40 00 01 02 c9 4f c0 a8 7a 01 e0 00   .(..@....O..z...
+                0x0020:   00 16 94 04 00 00 22 00 ea 03 00 00 00 01 04 00   ......".........
+                0x0030:   00 00 ef ff ff fa                                 ......
+                ```     
+            * ipk-sniffer (súbor IGMP.out)
+                ``` 
+                timestamp: 2023-04-17T19:50:31.817+02:00
+                src MAC: 52:54:00:a7:a5:80
+                dst MAC: 01:00:5e:00:00:16
+                frame length: 54 bytes
+                Internet Protocol Version 4
+                src IP: 192.168.122.1
+                dst IP: 224.0.0.22
+                Internet Group Management Protocol
+
+                0x0000:  01 00 5E 00 00 16 52 54 00 A7 A5 80 08 00 46 C0         ..^...RT......F.
+                0x0010:  00 28 00 00 40 00 01 02 C9 4F C0 A8 7A 01 E0 00         .(..@....O..z...
+                0x0020:  00 16 94 04 00 00 22 00 EA 03 00 00 00 01 04 00         ......".........
+                0x0030:  00 00 EF FF FF FA                                       ......
+                ``` 
+            * Výstup testu
+                ``````
+        * Testovanie protokolu MLD
+            * Wireshark (súbor MLD.src)
+                ``` 
+                src MAC: 08:00:27:56:aa:92
+                dst MAC: 33:33:00:00:00:16
+                frame length: 78 bytes
+                Internet Protocol Version 6
+                src IP: 2001:db8::1
+                dst IP: ff02::16
+                Multicast Listener Discovery
+                MLD Listener Query
+
+                0x0000:   33 33 00 00 00 16 08 00 27 56 aa 92 86 dd 60 00   33......'V....`.
+                0x0010:   00 00 00 18 3a 01 20 01 0d b8 00 00 00 00 00 00   ....:. .........
+                0x0020:   00 00 00 00 00 01 ff 02 00 00 00 00 00 00 00 00   ................
+                0x0030:   00 00 00 00 00 16 82 00 29 ca 27 10 00 00 00 00   ........).'.....
+                0x0040:   00 00 00 00 00 00 00 00 00 00 00 00 00 00         ..............
+                ```     
+            * ipk-sniffer (súbor MLD.out)
+                ``` 
+                timestamp: 2023-04-17T19:54:14.330+02:00
+                src MAC: 08:00:27:56:aa:92
+                dst MAC: 33:33:00:00:00:16
+                frame length: 78 bytes
+                Internet Protocol Version 6
+                src IP: 2001:db8::1
+                dst IP: ff02::16
+                Multicast Listener Discovery
+                MLD Listener Query
+
+                0x0000:  33 33 00 00 00 16 08 00 27 56 AA 92 86 DD 60 00         33......'V....`.
+                0x0010:  00 00 00 18 3A 01 20 01 0D B8 00 00 00 00 00 00         ....:. .........
+                0x0020:  00 00 00 00 00 01 FF 02 00 00 00 00 00 00 00 00         ................
+                0x0030:  00 00 00 00 00 16 82 00 29 CA 27 10 00 00 00 00         ........).'.....
+                0x0040:  00 00 00 00 00 00 00 00 00 00 00 00 00 00               ..............
+                ``` 
+            * Výstup testu
+                ```
+                ```       
+                
 * **Ubuntu 22.04.2 LTS - WSL** \
 Testovanie na operačnom systéme **Ubuntu 22.04.2 LTS** bolo vykonané s rovnakými vstupmi ako na **NixOs verzie 22.11.20230221.a3d745e (Raccoon)** pričom sa ukázalo, že všetky výstupy sú totožné. Z toho dôvodu ukážky z testovania neuvádzam.
 
