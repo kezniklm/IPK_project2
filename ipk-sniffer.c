@@ -341,7 +341,7 @@ void get_packet_data(const u_char *data, int size)
             strcat(out->data, "         ");
             for (int j = i - 16; j < i; j++)
             {
-                if (data[j] >= 32 && data[j] <= 128)
+                if (data[j] >= 32 && data[j] < 127)
                 {
                     sprintf(out->data + strlen(out->data), "%c", (unsigned char)data[j]);
                 }
@@ -685,7 +685,7 @@ void set_filter(char *filter, struct Arguments *args)
 
     if (!args->tcp && !args->udp && !args->arp && !args->icmp4 && !args->icmp6 && !args->igmp && !args->mld && !args->ndp)
     {
-        strcat(filter, "tcp or udp or arp or ip proto 1 or icmp6 or igmp or (ip6 multicast or icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) or ((icmp6[icmp6type] >= 133 and icmp6[icmp6type] <= 137) or (icmp6[icmp6type] == 139))");
+        strcat(filter, "tcp or udp or arp or ip proto 1 or icmp6 and (icmp6[icmp6type] == 128 or icmp6[icmp6type] == 129) or igmp or icmp6 and (icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) or (icmp6 and ip6[40] == 143) or ((icmp6[icmp6type] >= 133 and icmp6[icmp6type] <= 137) or (icmp6[icmp6type] == 139))");
     }
 }
 
