@@ -1,0 +1,19 @@
+timestamp: 2023-04-17T19:15:03.594+02:00
+src MAC: 00:14:0b:33:33:27
+dst MAC: d0:7a:b5:96:cd:0a
+frame length: 109 bytes
+Internet Protocol Version 4
+src IP: 192.168.1.101
+dst IP: 178.123.13.120
+User Datagram Protocol
+src port: 42559
+dst port: 26895
+
+0x0000:  D0 7A B5 96 CD 0A 00 14 0B 33 33 27 08 00 45 00         .z.......33'..E.
+0x0010:  00 5F 31 16 00 00 80 11 87 77 C0 A8 01 65 B2 7B         ._1......w...e.{
+0x0020:  0D 78 A6 3F 69 0F 00 4B 6A 54 64 31 3A 61 64 32         .x.?i..KjTd1:ad2
+0x0030:  3A 69 64 32 30 3A 5A FA 29 99 3A 5E CE 19 D1 8B         :id20:Z.).:^....
+0x0040:  AA 9B 4E 4D F9 2E 51 52 FE FF 65 31 3A 71 34 3A         ..NM..QR..e1:q4:
+0x0050:  70 69 6E 67 31 3A 74 34 3A 85 72 00 00 31 3A 76         ping1:t4:.r..1:v
+0x0060:  34 3A 55 54 7E 62 31 3A 79 31 3A 71 65                  4:UT~b1:y1:qe
+

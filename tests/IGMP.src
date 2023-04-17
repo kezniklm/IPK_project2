@@ -1,0 +1,12 @@
+src MAC: 52:54:00:a7:a5:80
+dst MAC: 01:00:5e:00:00:16
+frame length: 54 bytes
+Internet Protocol Version 4
+src IP: 192.168.122.1
+dst IP: 224.0.0.22
+Internet Group Management Protocol
+
+0x0000:   01 00 5e 00 00 16 52 54 00 a7 a5 80 08 00 46 c0   ..^...RT......F.
+0x0010:   00 28 00 00 40 00 01 02 c9 4f c0 a8 7a 01 e0 00   .(..@....O..z...
+0x0020:   00 16 94 04 00 00 22 00 ea 03 00 00 00 01 04 00   ......".........
+0x0030:   00 00 ef ff ff fa                                 ......

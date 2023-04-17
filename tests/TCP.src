@@ -1,0 +1,15 @@
+src MAC: 00:1d:60:b3:01:84
+dst MAC: 00:26:62:2f:47:87
+frame length: 74 bytes 
+Internet Protocol Version 4
+src IP: 192.168.1.3
+dst IP: 63.116.243.97
+Transmission Control Protocol
+src port: 58816
+dst port: 80
+                
+0x0000:   00 26 62 2f 47 87 00 1d 60 b3 01 84 08 00 45 00   .&b/G...`.....E.
+0x0010:   00 3c a8 cf 40 00 40 06 9d 6b c0 a8 01 03 3f 74   .<..@.@..k....?t
+0x0020:   f3 61 e5 c0 00 50 e5 94 3d aa 00 00 00 00 a0 02   .a...P..=.......
+0x0030:   16 d0 9d e2 00 00 02 04 05 b4 04 02 08 0a 00 17   ................
+0x0040:   95 65 00 00 00 00 01 03 03 07                     .e........

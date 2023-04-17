@@ -1,0 +1,17 @@
+timestamp: 2023-04-17T19:48:15.152+02:00
+src MAC: ca:01:59:d6:00:08
+dst MAC: 33:33:ff:d7:93:df
+frame length: 86 bytes
+Internet Protocol Version 6
+src IP: fe80::c801:59ff:fed6:8
+dst IP: ff02::1:ffd7:93df
+Neighbor Discovery Protocol
+NDP Neighbor Solicitation
+
+0x0000:  33 33 FF D7 93 DF CA 01 59 D6 00 08 86 DD 6E 00         33......Y.....n.
+0x0010:  00 00 00 20 3A FF FE 80 00 00 00 00 00 00 C8 01         ... :...........
+0x0020:  59 FF FE D6 00 08 FF 02 00 00 00 00 00 00 00 00         Y...............
+0x0030:  00 01 FF D7 93 DF 87 00 76 37 00 00 00 00 FE 80         ........v7......
+0x0040:  00 00 00 00 00 00 48 38 51 FF FE D7 93 DF 01 01         ......H8Q.......
+0x0050:  CA 01 59 D6 00 08                                       ..Y...
+

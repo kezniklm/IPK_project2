@@ -1,0 +1,17 @@
+src MAC: 00:14:0b:33:33:27
+dst MAC: d0:7a:b5:96:cd:0a
+frame length: 109 bytes
+Internet Protocol Version 4
+src IP: 192.168.1.101
+dst IP: 178.123.13.120
+User Datagram Protocol
+src port: 42559
+dst port: 26895
+
+0x0000:   d0 7a b5 96 cd 0a 00 14 0b 33 33 27 08 00 45 00   .z.......33'..E.
+0x0010:   00 5f 31 16 00 00 80 11 87 77 c0 a8 01 65 b2 7b   ._1......w...e.{
+0x0020:   0d 78 a6 3f 69 0f 00 4b 6a 54 64 31 3a 61 64 32   .x.?i..KjTd1:ad2
+0x0030:   3a 69 64 32 30 3a 5a fa 29 99 3a 5e ce 19 d1 8b   :id20:Z.).:^....
+0x0040:   aa 9b 4e 4d f9 2e 51 52 fe ff 65 31 3a 71 34 3a   ..NM..QR..e1:q4:
+0x0050:   70 69 6e 67 31 3a 74 34 3a 85 72 00 00 31 3a 76   ping1:t4:.r..1:v
+0x0060:   34 3a 55 54 7e 62 31 3a 79 31 3a 71 65            4:UT~b1:y1:qe

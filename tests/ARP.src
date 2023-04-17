@@ -1,0 +1,11 @@
+src MAC: 52:54:00:a7:a5:80
+dst MAC: ff:ff:ff:ff:ff:ff
+frame length: 42 bytes
+Internet Protocol Version 4
+src IP: 192.168.122.1
+dst IP: 85.163.14.54
+Address Resolution Protocol
+
+0x0000:   ff ff ff ff ff ff 52 54 00 a7 a5 80 08 06 00 01   ......RT........
+0x0010:   08 00 06 04 00 01 52 54 00 a7 a5 80 c0 a8 7a 01   ......RT......z.
+0x0020:   00 00 00 00 00 00 55 a3 0e 36                     ......U..6

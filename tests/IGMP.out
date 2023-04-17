@@ -1,0 +1,14 @@
+timestamp: 2023-04-17T19:50:31.817+02:00
+src MAC: 52:54:00:a7:a5:80
+dst MAC: 01:00:5e:00:00:16
+frame length: 54 bytes
+Internet Protocol Version 4
+src IP: 192.168.122.1
+dst IP: 224.0.0.22
+Internet Group Management Protocol
+
+0x0000:  01 00 5E 00 00 16 52 54 00 A7 A5 80 08 00 46 C0         ..^...RT......F.
+0x0010:  00 28 00 00 40 00 01 02 C9 4F C0 A8 7A 01 E0 00         .(..@....O..z...
+0x0020:  00 16 94 04 00 00 22 00 EA 03 00 00 00 01 04 00         ......".........
+0x0030:  00 00 EF FF FF FA                                       ......
+

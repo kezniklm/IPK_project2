@@ -1,0 +1,18 @@
+timestamp: 2023-04-17T19:25:25.198+02:00
+src MAC: ca:01:59:d6:00:08
+dst MAC: 52:54:00:a7:a5:80
+frame length: 114 bytes
+Internet Protocol Version 4
+src IP: 192.168.122.33
+dst IP: 192.168.122.1
+Internet Control Message Protocol version 4
+
+0x0000:  52 54 00 A7 A5 80 CA 01 59 D6 00 08 08 00 45 00         RT......Y.....E.
+0x0010:  00 64 00 04 00 00 FF 01 46 21 C0 A8 7A 21 C0 A8         .d......F!..z!..
+0x0020:  7A 01 08 00 38 73 00 00 00 04 00 00 00 00 00 03         z...8s..........
+0x0030:  45 D0 AB CD AB CD AB CD AB CD AB CD AB CD AB CD         E...............
+0x0040:  AB CD AB CD AB CD AB CD AB CD AB CD AB CD AB CD         ................
+0x0050:  AB CD AB CD AB CD AB CD AB CD AB CD AB CD AB CD         ................
+0x0060:  AB CD AB CD AB CD AB CD AB CD AB CD AB CD AB CD         ................
+0x0070:  AB CD                                                   ..
+
