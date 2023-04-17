@@ -681,7 +681,7 @@ void set_filter(char *filter, struct Arguments *args)
 
     if (!args->tcp && !args->udp && !args->arp && !args->icmp4 && !args->icmp6 && !args->igmp && !args->mld && !args->ndp)
     {
-        strcat(filter, "portrange 0-65535 or tcp or udp or arp or ip proto 1 or icmp6 and (icmp6[icmp6type] == 128 or icmp6[icmp6type] == 129) or igmp or icmp6 and (icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) or (icmp6 and ip6[40] == 143) or ((icmp6[icmp6type] >= 133 and icmp6[icmp6type] <= 137) or (icmp6[icmp6type] == 139))");
+        strcat(filter, "portrange 0-65535 or tcp or udp or arp or ip proto 1 or (icmp6 and (icmp6[icmp6type] == 128 or icmp6[icmp6type] == 129)) or igmp or (icmp6 and (icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143)) or (icmp6 and (icmp6[icmp6type] >= 133 and icmp6[icmp6type] <= 137) or (icmp6[icmp6type] == 139))");
     }
 }
 
@@ -757,6 +757,6 @@ int main(int argc, char *argv[])
     free_resources(arguments, out, filter);
     pcap_freecode(&fp);
     pcap_close(opened_session);
-    
+
     exit(EXIT_SUCCESS);
 }
