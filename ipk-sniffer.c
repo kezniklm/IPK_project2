@@ -7,8 +7,11 @@
 
 #include "ipk-sniffer.h"
 
-/* Ukazateľ na výstupnú štruktúru je globálny z dôvodu*/
+/* Globálne premenné nutné pre korektné ukončenie programu pomocou signálu SIGINT (Ctrl-c) */
 struct Output *out;
+struct Arguments *arguments;
+pcap_t *opened_session;
+char *filter;
 
 /**
  * @brief V prípade ukončenia programu pomocou signálu SIGINT korektne ukončí program
@@ -16,6 +19,8 @@ struct Output *out;
  */
 void catch_sigint()
 {
+    free_resources(arguments, out, filter);
+    pcap_close(opened_session);
     exit(SIGINT);
 }
 
@@ -160,7 +165,7 @@ void create_timestamp(const struct pcap_pkthdr *header)
     // Pripojí mikrosekundovú časť ku timestamp stringu
     if (snprintf(microsecond_str, sizeof(microsecond_str), ".%03ld", header->ts.tv_usec) < 0)
     {
-        error_exit("Chyba vramci funkcie snprintf"); // snprintf
+        error_exit("Chyba vramci funkcie snprintf");
     }
     strncat(timestamp_str, microsecond_str, sizeof(timestamp_str) - strlen(timestamp_str) - 1);
 
@@ -318,6 +323,9 @@ void get_arp_header(const u_char *buffer)
  * @brief Vloži hexadecimálny formát packetu (hex dump) do výstupnej štruktúry
  * @param data Dáta packetu
  * @param size Veľkosť packetu
+ * @note Jedná sa o upravenú verziu funkcie void PrintData (const u_char * data , int Size) od autora Faraz Fallahi
+ * @author Faraz Fallahi
+ * @cite https://gist.github.com/fffaraz/7f9971463558e9ea9545
  */
 void get_packet_data(const u_char *data, int size)
 {
@@ -648,7 +656,7 @@ void set_filter(char *filter, struct Arguments *args)
         {
             strcat(filter, "or ");
         }
-        strcat(filter, "icmp6 ");
+        strcat(filter, "icmp6 and (icmp6[icmp6type] == 128 or icmp6[icmp6type] == 129) ");
     }
     if (args->igmp == true)
     {
@@ -664,7 +672,7 @@ void set_filter(char *filter, struct Arguments *args)
         {
             strcat(filter, "or ");
         }
-        strcat(filter, "(ip6 multicast or icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) ");
+        strcat(filter, "icmp6 and (icmp6[icmp6type] == 130 or icmp6[icmp6type] == 131 or icmp6[icmp6type] == 132) or (icmp6 and ip6[40] == 143) ");
     }
     if (args->ndp == true)
     {
@@ -706,11 +714,8 @@ int main(int argc, char *argv[])
 {
     /* Zachytenie CTRL+C (SIGINT) */
     signal(SIGINT, catch_sigint);
-
-    struct Arguments *arguments;
     struct bpf_program fp;
-    char *filter, errbuff[PCAP_ERRBUF_SIZE];
-    pcap_t *opened_session;
+    char errbuff[PCAP_ERRBUF_SIZE];
     bpf_u_int32 pMask, pNet;
 
     allocate_resources(&arguments, &out, &filter);
@@ -737,9 +742,9 @@ int main(int argc, char *argv[])
     {
         error_exit("Interface neposkytuje ethernetove hlavicky");
     }
+
     set_filter(filter, arguments);
-    // printf("%s", filter);
-    // fflush(stdout);
+    
     if (pcap_compile(opened_session, &fp, filter, 0, pNet) == ERROR)
     {
         error_exit("Zlyhanie funkcie pcap_compile");
