@@ -48,6 +48,7 @@ struct Output
     int src_port;
     int dst_port;
     char *data;
+    bool extensions;
 };
 
 /**

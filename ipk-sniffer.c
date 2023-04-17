@@ -387,14 +387,17 @@ void print_output(bool ports)
     printf("src MAC: %s\n", out->src_mac);
     printf("dst MAC: %s\n", out->dst_mac);
     printf("frame length: %d bytes\n", out->frame_length);
-    printf("%s\n", out->IP);
+    if (out->extensions)
+    {
+        printf("%s\n", out->IP);
+    }
     printf("src IP: %s\n", out->src_IP);
     printf("dst IP: %s\n", out->dst_IP);
-    if (strlen(out->protocol) != 0)
+    if (strlen(out->protocol) != 0 && out->extensions)
     {
         printf("%s\n", out->protocol);
     }
-    if (strlen(out->message_type) != 0)
+    if (strlen(out->message_type) != 0 && out->extensions)
     {
         printf("%s\n", out->message_type);
     }
@@ -712,6 +715,7 @@ int main(int argc, char *argv[])
 
     allocate_resources(&arguments, &out, &filter);
     arg_check(argc, argv, arguments);
+    out->extensions = arguments->extensions;
     if (arguments->is_interface == false)
     {
         free_resources(arguments, out, filter);

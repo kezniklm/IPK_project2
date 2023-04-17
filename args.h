@@ -37,6 +37,7 @@ struct Arguments
     bool igmp;
     bool mld;
     int number_of_packets;
+    bool extensions;
 };
 
 /**

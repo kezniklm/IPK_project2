@@ -71,6 +71,10 @@ void arg_check(int argc, char *argv[], struct Arguments *args)
             }
             args->udp = true;
         }
+        else if (!strcmp(argv[argument], "--ext"))
+        {
+            args->extensions = true;
+        }
         else if (!strcmp(argv[argument], "--icmp4"))
         {
             args->icmp4 = true;
