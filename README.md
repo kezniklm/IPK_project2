@@ -163,7 +163,7 @@ Testovanie bolo vykonávané na operačných systémoch Ubuntu a referenčnom Ni
 Boli testované všetky podporované protokoly, pričom výstup z programu bol porovnávaný pomocou test.py, prípadne ručne s referenčným výstupom z programu **TCPDUMP** alebo **Wireshark**. Pre zaistenie konzistentnosti testovania boli ako prvé pakety zachytené do .pcapng súborov a následne znovu odosielané pomocou nástroja **tcpreplay**.
 Následne boli porovnané výsledné verzie medzi sebou pomocou skriptu **test.py**, ktorý porovnával výstup programu **Wireshark** (.src súbory) a **ipk-sniffer** (.out súbory). V prípade úspešného porovnania je výsledok prázdny reťazec "".
 * **NixOs verzie 22.11.20230221.a3d745e (Raccoon)**
-    * Testovanie argumentov programu \
+    * Testovanie argumentov programu
         * Výpis všetkých dostupných rozhraní
             * TCPDUMP
                 ```
@@ -519,7 +519,7 @@ Následne boli porovnané výsledné verzie medzi sebou pomocou skriptu **test.p
             * Výstup testu
                 ```
                 ```       
-                
+
 * **Ubuntu 22.04.2 LTS - WSL** \
 Testovanie na operačnom systéme **Ubuntu 22.04.2 LTS** bolo vykonané s rovnakými vstupmi ako na **NixOs verzie 22.11.20230221.a3d745e (Raccoon)** pričom sa ukázalo, že všetky výstupy sú totožné. Z toho dôvodu ukážky z testovania neuvádzam.
 
