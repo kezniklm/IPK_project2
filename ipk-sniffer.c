@@ -712,7 +712,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, catch_sigint);
     struct Arguments *arguments;
     struct bpf_program fp;
-    char *filter,errbuff[PCAP_ERRBUF_SIZE];
+    char *filter, errbuff[PCAP_ERRBUF_SIZE];
     bpf_u_int32 pMask, pNet;
 
     allocate_resources(&arguments, &out, &filter);
@@ -741,7 +741,7 @@ int main(int argc, char *argv[])
     }
 
     set_filter(filter, arguments);
-    
+
     if (pcap_compile(opened_session, &fp, filter, 0, pNet) == ERROR)
     {
         error_exit("Zlyhanie funkcie pcap_compile");
