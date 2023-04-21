@@ -4,6 +4,9 @@
 ## Zadanie
 Cieľom projektu bolo vytvoriť sieťový analyzátor, ktorý umožňuje zachycovanie a filtrovanie paketov (rámcov) na špecifickom sieťovom rozhraní.
 
+## Výsledné hodnotenie
+20/20 bodov + 1 bonusový bod
+
 ## Implementácia 
 
 Projekt je implementovaný v jazyku C, revízia C18 (ISO/IEC 9899:2018). Doporučuje sa prekladač **gcc verzie 7.5.0** a jeho novšie vydania.
