@@ -34,7 +34,7 @@ $ make
 ## Spustenie
 Projekt je spúšťaný z príkazovej riadky, pričom prepínače je možné vzájomne zameniť.
 ```
-$ ../ipk-sniffer [-i interface | --interface interface] {-p port [--tcp|-t] [--udp|-u]} [--arp] [--icmp4] [--icmp6] [--igmp] [--mld] {-n num}
+$ ./ipk-sniffer [-i interface | --interface interface] {-p port [--tcp|-t] [--udp|-u]} [--arp] [--icmp4] [--icmp6] [--igmp] [--mld] {-n num} [--ext]
     -i eth0 alebo --interface eth0
         V prípade zadaného rozhrania bude dané rozhranie analyzované.
         Pokiaľ tento parameter nie je špecifikovaný (ani žiadnen ostatný), alebo            
