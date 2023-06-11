@@ -1,4 +1,4 @@
-# IPK projekt 2
+# Network Sniffer
 ## Autor
 [Matej Keznikl ( xkezni01 )](https://github.com/kezniklm/)
 ## Zadanie
